@@ -1,0 +1,60 @@
+import React from 'react';
+import { TrendingUp } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const MoodChart = () => {
+  const moodData = [
+    { date: '2025-08-28', mood: 4 },
+    { date: '2025-08-29', mood: 3 },
+    { date: '2025-08-30', mood: 2 },
+    { date: '2025-08-31', mood: 5 },
+    { date: '2025-09-01', mood: 4 },
+    { date: '2025-09-02', mood: 3 },
+    { date: '2025-09-03', mood: 4 }
+  ];
+
+  return (
+    <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
+      <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-3">
+        <TrendingUp className="w-6 h-6 text-purple-400" />
+        <span>Mood Trend Analysis</span>
+      </h3>
+      <ResponsiveContainer width="100%" height={350}>
+        <AreaChart data={moodData}>
+          <defs>
+            <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis 
+            dataKey="date" 
+            tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            tick={{ fill: '#9ca3af' }}
+          />
+          <YAxis domain={[1, 5]} tick={{ fill: '#9ca3af' }} />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: '#1f2937', 
+              border: '1px solid #374151', 
+              borderRadius: '12px',
+              color: '#f3f4f6'
+            }}
+            labelFormatter={(value) => new Date(value).toLocaleDateString()}
+            formatter={(value) => [value, 'Mood']}
+          />
+          <Area 
+            type="monotone" 
+            dataKey="mood" 
+            stroke="#8b5cf6" 
+            fill="url(#moodGradient)" 
+            strokeWidth={3}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+export default MoodChart;
