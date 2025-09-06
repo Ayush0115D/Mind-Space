@@ -12,18 +12,19 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
-          <div className="flex-1">
-            {currentView === 'dashboard' && <Dashboard />}
-            {currentView === 'mood' && <MoodTracker />}
-            {currentView === 'journal' && <Journal />}
-            {currentView === 'community' && <Community />}
-          </div>
-        </div>
-      </div>
+      {/* Small padding for breathing space */}
+      <div className="w-full px-8 sm:px-12 lg:px-24 py-8">
+  <div className="flex flex-col lg:flex-row gap-8">
+    <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+    <div className="flex-1">
+      {currentView === 'dashboard' && <Dashboard />}
+      {currentView === 'mood' && <MoodTracker />}
+      {currentView === 'journal' && <Journal />}
+      {currentView === 'community' && <Community />}
     </div>
+  </div>
+</div>
+      </div>
   );
 };
 

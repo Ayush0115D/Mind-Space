@@ -4,7 +4,8 @@ import { Moon } from 'lucide-react';
 const Header = () => {
   return (
     <header className="bg-gray-900/90 backdrop-blur-sm shadow-2xl border-b border-gray-700/50 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* match padding with App.jsx */}
+      <div className="w-full px-8 sm:px-12 lg:px-24">
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">

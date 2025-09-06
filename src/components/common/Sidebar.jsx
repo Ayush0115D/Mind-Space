@@ -29,7 +29,8 @@ const Sidebar = ({ currentView, setCurrentView }) => {
 
   return (
     <div className="lg:w-72">
-      <nav className="bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6 space-y-3 sticky top-32">
+      {/* smaller top offset to align closer under header */}
+      <nav className="bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-700/50 p-6 space-y-3 sticky top-24">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
