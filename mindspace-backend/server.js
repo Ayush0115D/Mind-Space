@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./src/config/database');
+const connectDB = require('./config/database');
 
-// Import routes
-const authRoutes = require('./src/routes/auth');
-const userRoutes = require('./src/routes/users');
-const mindmapRoutes = require('./src/routes/mindmaps');
+// Routes
+const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const mindmapRoutes = require('./routes/mindmaps');
 
 dotenv.config();
 
@@ -16,8 +16,13 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
+// ✅ CORS configuration for Vite frontend
+app.use(cors({
+  origin: "http://localhost:5173", // Vite frontend URL
+  credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Routes
@@ -30,6 +35,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Mind-Space Backend API' });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });

@@ -1,4 +1,4 @@
-const Mindmap = require('./models/Mindmap');
+const Mindmap = require('../models/Mindmap');
 
 const getMindmaps = async (req, res) => {
   try {

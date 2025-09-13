@@ -1,14 +1,10 @@
 const express = require('express');
+const { getProfile, updateProfile } = require('../controllers/userController');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/profile', auth, (req, res) => {
-  res.json({
-    id: req.user._id,
-    username: req.user.username,
-    email: req.user.email
-  });
-});
+router.get('/profile', auth, getProfile);
+router.put('/profile', auth, updateProfile);
 
 module.exports = router;
