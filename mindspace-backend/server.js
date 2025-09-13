@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
-
 // Routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -16,9 +15,13 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// ✅ CORS configuration for Vite frontend
+// ✅ CORS configuration using environment variable
 app.use(cors({
-  origin: "http://localhost:5173", // Vite frontend URL
+  origin: [
+    process.env.FRONTEND_URL, // Your deployed frontend URL from .env
+    "http://localhost:5173",  // Keep for local development
+    "http://localhost:3000"   // Alternative React port
+  ].filter(Boolean), // Remove undefined values
   credentials: true
 }));
 
