@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
+
 // Routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -15,15 +16,28 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// ✅ CORS configuration using environment variable
+// ✅ Define allowed origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL, // Your deployed frontend URL from .env
+  "http://localhost:5173",  // Local development (Vite)
+  "http://localhost:3000"   // Local development (CRA)
+].filter(Boolean);
+
+// ✅ CORS configuration
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL, // Your deployed frontend URL from .env
-    "http://localhost:5173",  // Keep for local development
-    "http://localhost:3000"   // Alternative React port
-  ].filter(Boolean), // Remove undefined values
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman) or from allowed origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // explicitly allow OPTIONS
 }));
+
+// ✅ Handle preflight (OPTIONS) requests globally
+app.options('*', cors());
 
 // Middleware
 app.use(express.json());
