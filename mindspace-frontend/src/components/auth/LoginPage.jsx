@@ -28,7 +28,7 @@ const LoginPage = () => {
 
     try {
       // Use environment variable with fallback
-      const API_URL = process.env.REACT_APP_API_URL || 'https://mind-space-1lhz.onrender.com';
+      const API_URL = process.env.VITE_APP_API_URL || 'https://mind-space-3l96.onrender.com';
       const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
       
       const payload = isLogin 
