@@ -19,8 +19,8 @@ connectDB();
 // ✅ Define allowed origins
 const allowedOrigins = [
   "https://mind-space-web.vercel.app",  // Production
-  "http://localhost:5173",  // Local development (Vite)
-  "http://localhost:3000"   // Local development (CRA)
+  "http://localhost:5173",              // Local development (Vite)
+  "http://localhost:3000"               // Local development (CRA)
 ].filter(Boolean);
 
 // ✅ CORS configuration
@@ -33,11 +33,8 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // explicitly allow OPTIONS
+  methods: ["GET", "POST", "PUT", "DELETE", ], // explicitly allow methods
 }));
-
-// ✅ Handle preflight (OPTIONS) requests globally
-app.options('*', cors());
 
 // Middleware
 app.use(express.json());
