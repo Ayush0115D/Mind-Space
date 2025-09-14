@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Dashboard from './components/dashboard/Dashboard';
@@ -11,30 +11,49 @@ const App = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // 👈 added
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+
+    if (token && savedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(savedUser));
+    }
+
+    setLoading(false); // 👈 mark done
+  }, []);
 
   const handleLogin = (userData) => {
-    // Handle successful login
     setIsAuthenticated(true);
     setUser(userData);
   };
 
   const handleLogout = () => {
-    // Handle logout
     setIsAuthenticated(false);
     setUser(null);
     setCurrentView('dashboard');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
-  // Show login page if not authenticated
+  if (loading) {
+    // ⏳ while checking auth, show splash/loading screen instead of login flicker
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-400"></div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  // Show main app if authenticated
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Header user={user} onLogout={handleLogout} />
-      {/* Small padding for breathing space */}
       <div className="w-full px-8 sm:px-12 lg:px-24 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <Sidebar currentView={currentView} setCurrentView={setCurrentView} />

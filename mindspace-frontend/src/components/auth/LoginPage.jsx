@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, Brain } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Brain } from 'lucide-react';
 import bgImage from "../../assets/istockphoto-1226290299-1024x1024.jpg";
 
 const LoginPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: ''
   });
@@ -21,73 +20,65 @@ const LoginPage = ({ onLogin }) => {
     setError('');
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  try {
-    const API_URL = import.meta.env.VITE_API_URL;
-    if (!API_URL) {
-      setError('API URL is not defined. Check your environment variables.');
-      setLoading(false);
-      return;
-    }
-
-    const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
-
-    // Trim inputs
-    const payload = isLogin
-      ? { email: formData.email.trim(), password: formData.password.trim() }
-      : {
-          username: formData.username.trim(),
-          email: formData.email.trim(),
-          password: formData.password.trim()
-        };
-
-    // Basic frontend validation
-    if (!isLogin && (!payload.username || !payload.email || !payload.password)) {
-      setError('Please fill in all fields.');
-      setLoading(false);
-      return;
-    }
-    if (isLogin && (!payload.email || !payload.password)) {
-      setError('Please enter email and password.');
-      setLoading(false);
-      return;
-    }
-
-    // 🔒 Secure logging without showing email/password
-    console.log(`Submitting ${isLogin ? 'login' : 'register'} request for user:`, payload.username || 'N/A');
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    let data = {};
     try {
-      data = await response.json();
-    } catch {
-      setError('Server error. Please try again.');
-      setLoading(false);
-      return;
-    }
+      const API_URL = import.meta.env.VITE_API_URL;
+      if (!API_URL) {
+        setError('API URL is not defined. Check your environment variables.');
+        setLoading(false);
+        return;
+      }
 
-    if (response.ok) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      onLogin?.(data.user);
-    } else {
-      setError(data.message || 'Something went wrong');
+      const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
+
+      // Trim inputs
+      const payload = {
+        email: formData.email.trim(),
+        password: formData.password.trim()
+      };
+
+      // Basic frontend validation
+      if (!payload.email || !payload.password) {
+        setError('Please fill in all fields.');
+        setLoading(false);
+        return;
+      }
+
+      // 🔒 Secure logging without showing email/password
+      console.log(`Submitting ${isLogin ? 'login' : 'register'} request`);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        setError('Server error. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onLogin?.(data.user);
+      } else {
+        setError(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError('Network error. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex items-start justify-end-safe p-8 bg-cover bg-center relative"
@@ -134,21 +125,6 @@ const handleSubmit = async (e) => {
 
           {/* Form */}
           <div className="space-y-5">
-            {!isLogin && (
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all duration-300"
-                  required={!isLogin}
-                />
-              </div>
-            )}
-
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
               <input
@@ -219,4 +195,5 @@ const handleSubmit = async (e) => {
     </div>
   );
 };
+
 export default LoginPage;
