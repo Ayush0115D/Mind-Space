@@ -5,11 +5,10 @@ const connectDB = require('./config/database');
 
 // Routes
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
 const mindmapRoutes = require('./routes/mindmaps');
+const moodRoutes = require('./routes/moods');
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -33,7 +32,7 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", ], // explicitly allow methods
+  methods: ["GET", "POST", "PUT", "DELETE"], // explicitly allow methods
 }));
 
 // Middleware
@@ -41,8 +40,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/mindmaps', mindmapRoutes);
+app.use('/api/moods', moodRoutes);
 
 // Health check
 app.get('/', (req, res) => {
