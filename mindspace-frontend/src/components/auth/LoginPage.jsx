@@ -21,42 +21,47 @@ const LoginPage = () => {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
+  try {
+    const API_URL = import.meta.env.VITE_API_URL; // ⚡ use correct env
+    const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
+
+    const payload = isLogin 
+      ? { email: formData.email, password: formData.password }
+      : { username: formData.username, email: formData.email, password: formData.password };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      // credentials: 'include' // ⚡ only if you use cookies
+    });
+
+    let data = {};
     try {
-      // Use environment variable with fallback
-      const API_URL = process.env.VITE_APP_API_URL || 'https://mind-space-3l96.onrender.com';
-      const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
-      
-      const payload = isLogin 
-        ? { email: formData.email, password: formData.password }
-        : { username: formData.username, email: formData.email, password: formData.password };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        alert(`${isLogin ? 'Login' : 'Registration'} successful!`);
-      } else {
-        setError(data.message || 'Something went wrong');
-      }
-    } catch (error) {
-      setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+      data = await response.json();
+    } catch {
+      return setError('Server error. Please try again.');
     }
-  };
+
+    if (response.ok) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      onLogin?.(data.user); // ⚡ notify App about login
+    } else {
+      setError(data.message || 'Something went wrong');
+    }
+  } catch (error) {
+    setError('Network error. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-start justify-end-safe p-8 bg-cover bg-center relative"
