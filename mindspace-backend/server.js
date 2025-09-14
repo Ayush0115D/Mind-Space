@@ -18,7 +18,7 @@ connectDB();
 
 // ✅ Define allowed origins
 const allowedOrigins = [
-  process.env.FRONTEND_URL, // Your deployed frontend URL from .env
+  "https://mind-space-web.vercel.app",  // Production
   "http://localhost:5173",  // Local development (Vite)
   "http://localhost:3000"   // Local development (CRA)
 ].filter(Boolean);
