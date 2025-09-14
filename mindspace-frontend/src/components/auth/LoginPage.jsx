@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Brain } from 'lucide-react';
 import bgImage from "../../assets/istockphoto-1226290299-1024x1024.jpg";
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,77 +27,97 @@ const handleSubmit = async (e) => {
   setError('');
 
   try {
-    const API_URL = import.meta.env.VITE_API_URL; // ⚡ use correct env
+    const API_URL = import.meta.env.VITE_API_URL;
+    if (!API_URL) {
+      setError('API URL is not defined. Check your environment variables.');
+      setLoading(false);
+      return;
+    }
+
     const url = `${API_URL}/api/auth/${isLogin ? 'login' : 'register'}`;
 
-    const payload = isLogin 
-      ? { email: formData.email, password: formData.password }
-      : { username: formData.username, email: formData.email, password: formData.password };
+    // Trim inputs
+    const payload = isLogin
+      ? { email: formData.email.trim(), password: formData.password.trim() }
+      : {
+          username: formData.username.trim(),
+          email: formData.email.trim(),
+          password: formData.password.trim()
+        };
+
+    // Basic frontend validation
+    if (!isLogin && (!payload.username || !payload.email || !payload.password)) {
+      setError('Please fill in all fields.');
+      setLoading(false);
+      return;
+    }
+    if (isLogin && (!payload.email || !payload.password)) {
+      setError('Please enter email and password.');
+      setLoading(false);
+      return;
+    }
+
+    // 🔒 Secure logging without showing email/password
+    console.log(`Submitting ${isLogin ? 'login' : 'register'} request for user:`, payload.username || 'N/A');
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      // credentials: 'include' // ⚡ only if you use cookies
+      body: JSON.stringify(payload)
     });
 
     let data = {};
     try {
       data = await response.json();
     } catch {
-      return setError('Server error. Please try again.');
+      setError('Server error. Please try again.');
+      setLoading(false);
+      return;
     }
 
     if (response.ok) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      onLogin?.(data.user); // ⚡ notify App about login
+      onLogin?.(data.user);
     } else {
       setError(data.message || 'Something went wrong');
     }
-  } catch (error) {
+  } catch (err) {
     setError('Network error. Please try again.');
   } finally {
     setLoading(false);
   }
 };
 
-
   return (
     <div className="min-h-screen flex items-start justify-end-safe p-8 bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    >
-      {/* Overlay to improve readability */}
-     <div className="absolute inset-0 bg-black/30"></div>
-
+         style={{ backgroundImage: `url(${bgImage})` }}>
+      <div className="absolute inset-0 bg-black/30"></div>
       <div className="relative z-10 w-full max-w-md">
-{/* Logo + Heading */}
-<div className="mb-8 text-center">
-  <div className="flex items-center justify-center mb-3 space-x-3">
-    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl shadow-lg">
-      <Brain className="w-7 h-7 text-white" />
-    </div>
-    <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-blue-400 to-green-600 drop-shadow-lg tracking-wide">
-      Mind-Space
-    </h1>
-  </div>
+        {/* Logo + Heading */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center mb-3 space-x-3">
+            <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl shadow-lg">
+              <Brain className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-blue-400 to-green-600 drop-shadow-lg tracking-wide">
+              Mind-Space
+            </h1>
+          </div>
+          <p className="text-lg font-light leading-relaxed text-white/80">
+            <span className="font-semibold text-green-400">Visualize</span> your thoughts,&nbsp;
+            <span className="font-semibold text-blue-400">Organize</span> your ideas
+          </p>
+        </div>
 
-  {/* Subtitle */}
-  <p className="text-lg font-light leading-relaxed text-white/80">
-    <span className="font-semibold text-green-400">Visualize</span> your thoughts,&nbsp;
-    <span className="font-semibold text-blue-400">Organize</span> your ideas
-  </p>
-</div>
-    {/* Main Card */}
+        {/* Main Card */}
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
           {/* Toggle Buttons */}
           <div className="flex bg-white/5 rounded-2xl p-1 mb-6">
             <button
               onClick={() => setIsLogin(true)}
               className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
-                isLogin 
-                  ? 'bg-white text-gray-900 shadow-lg' 
-                  : 'text-white/70 hover:text-white'
+                isLogin ? 'bg-white text-gray-900 shadow-lg' : 'text-white/70 hover:text-white'
               }`}
             >
               Sign In
@@ -105,9 +125,7 @@ const handleSubmit = async (e) => {
             <button
               onClick={() => setIsLogin(false)}
               className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
-                !isLogin 
-                  ? 'bg-white text-gray-900 shadow-lg' 
-                  : 'text-white/70 hover:text-white'
+                !isLogin ? 'bg-white text-gray-900 shadow-lg' : 'text-white/70 hover:text-white'
               }`}
             >
               Sign Up
@@ -170,21 +188,20 @@ const handleSubmit = async (e) => {
               </div>
             )}
 
-           <button
-  onClick={handleSubmit}
-  disabled={loading}
-  className="w-full py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-green-500/30 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
->
-  {loading ? (
-    <div className="flex items-center justify-center">
-      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-      {isLogin ? 'Signing in...' : 'Creating account...'}
-    </div>
-  ) : (
-    isLogin ? 'Sign In' : 'Create Account'
-  )}
-</button>
-
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-green-500/30 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {isLogin ? 'Signing in...' : 'Creating account...'}
+                </div>
+              ) : (
+                isLogin ? 'Sign In' : 'Create Account'
+              )}
+            </button>
           </div>
 
           {/* Footer Toggle */}
@@ -202,5 +219,4 @@ const handleSubmit = async (e) => {
     </div>
   );
 };
-
 export default LoginPage;
