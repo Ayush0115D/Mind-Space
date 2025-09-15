@@ -1,10 +1,10 @@
-const Mood = require('../models/Mood');
+const mood = require('../models/mood');
 
 const moodController = {
   // Get all moods for user
 getMoods: async (req, res) => {
   try {
-    const moods = await Mood.find({ userId: req.userId })
+    const moods = await mood.find({ userId: req.userId })
       .sort({ date: -1, createdAt: -1 })
       .limit(50);
 
@@ -41,7 +41,7 @@ getMoods: async (req, res) => {
       }
 
       // Check if mood already exists for this date
-      const existing = await Mood.findOne({ userId: req.userId, date });
+      const existing = await mood.findOne({ userId: req.userId, date });
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -87,7 +87,7 @@ getMoods: async (req, res) => {
       const { id } = req.params;
       const { mood, note } = req.body;
 
-      const updatedMood = await Mood.findOneAndUpdate(
+      const updatedMood = await mood.findOneAndUpdate(
         { _id: id, userId: req.userId },
         { mood, note },
         { new: true }
@@ -119,7 +119,7 @@ getMoods: async (req, res) => {
     try {
       const { id } = req.params;
 
-      const deletedMood = await Mood.findOneAndDelete({ 
+      const deletedMood = await mood.findOneAndDelete({ 
         _id: id, 
         userId: req.user.id 
       });
@@ -148,7 +148,7 @@ getMoods: async (req, res) => {
   // Get mood stats
   getStats: async (req, res) => {
     try {
-      const moods = await Mood.find({ userId: req.userId });
+      const moods = await mood.find({ userId: req.userId });
 
       if (moods.length === 0) {
         return res.json({

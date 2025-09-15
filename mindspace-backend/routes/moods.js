@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const moodController = require('../controllers/moodController');
-
+const auth = require('../middleware/auth');
 // Apply auth to all routes
 router.use(auth);
 

@@ -5,7 +5,7 @@ const {
   updateMindmap,
   deleteMindmap
 } = require('../controllers/mindmapController');
-
+const auth = require('../middleware/auth');
 const router = express.Router();
 
 router.use(auth); // Protect all mindmap routes
