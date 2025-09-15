@@ -1,26 +1,25 @@
-const mood = require('../models/mood');
+const Mood = require('../models/Mood');
 
 const moodController = {
   // Get all moods for user
-  getMoods: async (req, res) => {
-    try {
-      const moods = await Mood.find({ userId: req.user.id })
-        .sort({ date: -1, createdAt: -1 })
-        .limit(50);
+getMoods: async (req, res) => {
+  try {
+    const moods = await Mood.find({ userId: req.userId })
+      .sort({ date: -1, createdAt: -1 })
+      .limit(50);
 
-      res.json({
-        success: true,
-        data: moods
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch moods',
-        error: error.message
-      });
-    }
-  },
-
+    res.json({
+      success: true,
+      data: moods
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch moods',
+      error: error.message
+    });
+  }
+},
   // Create new mood
   createMood: async (req, res) => {
     try {
@@ -42,7 +41,7 @@ const moodController = {
       }
 
       // Check if mood already exists for this date
-      const existing = await Mood.findOne({ userId: req.user.id, date });
+      const existing = await Mood.findOne({ userId: req.userId, date });
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -58,7 +57,7 @@ const moodController = {
       });
 
       const newMood = new Mood({
-        userId: req.user.id,
+        userId: req.userId,
         mood: parseInt(mood),
         note: note || '',
         date,
@@ -89,7 +88,7 @@ const moodController = {
       const { mood, note } = req.body;
 
       const updatedMood = await Mood.findOneAndUpdate(
-        { _id: id, userId: req.user.id },
+        { _id: id, userId: req.userId },
         { mood, note },
         { new: true }
       );
@@ -149,7 +148,7 @@ const moodController = {
   // Get mood stats
   getStats: async (req, res) => {
     try {
-      const moods = await Mood.find({ userId: req.user.id });
+      const moods = await Mood.find({ userId: req.userId });
 
       if (moods.length === 0) {
         return res.json({

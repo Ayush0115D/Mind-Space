@@ -9,25 +9,25 @@ const generateToken = (userId) => {
 
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Username or email already exists' });
+      return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const user = new User({ username, email, password });
+    const user = new User({ email, password });
     await user.save();
 
     const token = generateToken(user._id);
 
     res.status(201).json({
       token,
-      user: { id: user._id, username: user.username, email: user.email }
+      user: { id: user._id, email: user.email }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -51,7 +51,7 @@ const login = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, username: user.username, email: user.email }
+      user: { id: user._id, email: user.email }
     });
   } catch (error) {
     console.error('Login error:', error);

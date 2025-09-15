@@ -4,23 +4,63 @@ import { Heart, Plus } from 'lucide-react';
 const MoodEntry = ({ onAddEntry }) => {
   const [mood, setMood] = useState(3);
   const [note, setNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const newEntry = {
-      date: today,
-      mood: mood,
-      note: note
-    };
-    onAddEntry(newEntry);
-    setMood(3);
-    setNote('');
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${API_URL}/api/moods`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          mood,
+          note,
+          date: today,
+        }),
+      });
+
+      // Ensure backend returned JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error("📥 Raw server response:", text);
+        throw new Error("Invalid server response (not JSON)");
+      }
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const newEntry = { ...data.data, id: data.data._id };
+        onAddEntry(newEntry);
+
+        setMood(3);
+        setNote('');
+        console.log('✅ Mood saved successfully!');
+      } else {
+        setError(data.message || 'Failed to save mood');
+        console.error('❌ API Error:', data.message);
+      }
+    } catch (error) {
+      setError(error.message || 'Failed to save mood. Please try again.');
+      console.error('❌ Network Error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Progress fill style (dynamic background based on mood value)
   const sliderStyle = {
-    background: `linear-gradient(to right, #ec4899 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`
-    // pink fill → gray background
+    background: `linear-gradient(to right, #ec4899 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`,
   };
 
   return (
@@ -29,13 +69,18 @@ const MoodEntry = ({ onAddEntry }) => {
         <Heart className="w-7 h-7 text-pink-400" />
         <span>How are you feeling today?</span>
       </h3>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-6">
         <div>
           <label className="block text-lg font-semibold text-gray-300 mb-4">
             Mood Level: <span className="text-purple-400 text-xl">{mood}/5</span>
           </label>
-
-          {/* Slider with dynamic progress fill */}
           <input
             type="range"
             min="1"
@@ -44,9 +89,8 @@ const MoodEntry = ({ onAddEntry }) => {
             onChange={(e) => setMood(parseInt(e.target.value))}
             className="w-full h-2 rounded-lg cursor-pointer appearance-none accent-pink-500"
             style={sliderStyle}
+            disabled={isSubmitting}
           />
-
-          {/* Labels */}
           <div className="flex justify-between text-sm text-gray-400 mt-2">
             <span>Very Low</span>
             <span>Low</span>
@@ -64,22 +108,25 @@ const MoodEntry = ({ onAddEntry }) => {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="What's influencing your mood today?"
-            className="w-full p-4 bg-gray-700/50 border border-gray-600 rounded-xl 
-                       focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
+            className="w-full p-4 bg-gray-700/50 border border-gray-600 rounded-xl
+                       focus:ring-2 focus:ring-purple-500 focus:border-purple-500
                        text-white placeholder-gray-400 transition-all"
             rows="4"
+            disabled={isSubmitting}
           />
         </div>
 
         <button
           onClick={handleSubmit}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 
-                     rounded-xl hover:from-purple-700 hover:to-pink-700 
-                     transition-all duration-300 flex items-center space-x-3 
-                     font-semibold shadow-lg hover:shadow-xl hover:shadow-purple-500/20"
+          disabled={isSubmitting}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3
+                     rounded-xl hover:from-purple-700 hover:to-pink-700
+                     transition-all duration-300 flex items-center space-x-3
+                     font-semibold shadow-lg hover:shadow-xl hover:shadow-purple-500/20
+                     disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
-          <span>Log Mood</span>
+          <span>{isSubmitting ? 'Saving...' : 'Submit Mood'}</span>
         </button>
       </div>
     </div>
