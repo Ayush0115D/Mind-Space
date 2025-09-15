@@ -1,64 +1,38 @@
-const mood = require('../models/mood');
+const Mood = require('../models/mood'); // Capital M to avoid shadowing
 
 const moodController = {
   // Get all moods for user
-getMoods: async (req, res) => {
-  try {
-    const moods = await mood.find({ userId: req.userId })
-      .sort({ date: -1, createdAt: -1 })
-      .limit(50);
+  getMoods: async (req, res) => {
+    try {
+      const moods = await Mood.find({ userId: req.userId })
+        .sort({ date: -1, createdAt: -1 })
+        .limit(50);
+      res.json({ success: true, data: moods });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch moods', error: error.message });
+    }
+  },
 
-    res.json({
-      success: true,
-      data: moods
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch moods',
-      error: error.message
-    });
-  }
-},
   // Create new mood
   createMood: async (req, res) => {
     try {
-      const { mood, note, date } = req.body;
+      const { mood: moodValue, note, date } = req.body;
 
-      // Validate
-      if (!mood || mood < 1 || mood > 5) {
-        return res.status(400).json({
-          success: false,
-          message: 'Mood must be between 1 and 5'
-        });
-      }
+      if (!moodValue || moodValue < 1 || moodValue > 5)
+        return res.status(400).json({ success: false, message: 'Mood must be between 1 and 5' });
 
-      if (!date) {
-        return res.status(400).json({
-          success: false,
-          message: 'Date is required'
-        });
-      }
+      if (!date)
+        return res.status(400).json({ success: false, message: 'Date is required' });
 
-      // Check if mood already exists for this date
-      const existing = await mood.findOne({ userId: req.userId, date });
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          message: 'Mood entry already exists for this date'
-        });
-      }
+      const existing = await Mood.findOne({ userId: req.userId, date });
+      if (existing)
+        return res.status(400).json({ success: false, message: 'Mood entry already exists for this date' });
 
-      // Create timestamp
-      const timestamp = new Date().toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      });
+      const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
       const newMood = new Mood({
         userId: req.userId,
-        mood: parseInt(mood),
+        mood: parseInt(moodValue),
         note: note || '',
         date,
         timestamp
@@ -66,18 +40,9 @@ getMoods: async (req, res) => {
 
       await newMood.save();
 
-      res.status(201).json({
-        success: true,
-        message: 'Mood logged successfully',
-        data: newMood
-      });
-
+      res.status(201).json({ success: true, message: 'Mood logged successfully', data: newMood });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create mood',
-        error: error.message
-      });
+      res.status(500).json({ success: false, message: 'Failed to create mood', error: error.message });
     }
   },
 
@@ -85,32 +50,20 @@ getMoods: async (req, res) => {
   updateMood: async (req, res) => {
     try {
       const { id } = req.params;
-      const { mood, note } = req.body;
+      const { mood: moodValue, note } = req.body;
 
-      const updatedMood = await mood.findOneAndUpdate(
+      const updatedMood = await Mood.findOneAndUpdate(
         { _id: id, userId: req.userId },
-        { mood, note },
+        { mood: moodValue, note },
         { new: true }
       );
 
-      if (!updatedMood) {
-        return res.status(404).json({
-          success: false,
-          message: 'Mood not found'
-        });
-      }
+      if (!updatedMood)
+        return res.status(404).json({ success: false, message: 'Mood not found' });
 
-      res.json({
-        success: true,
-        data: updatedMood
-      });
-
+      res.json({ success: true, data: updatedMood });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to update mood',
-        error: error.message
-      });
+      res.status(500).json({ success: false, message: 'Failed to update mood', error: error.message });
     }
   },
 
@@ -119,79 +72,39 @@ getMoods: async (req, res) => {
     try {
       const { id } = req.params;
 
-      const deletedMood = await mood.findOneAndDelete({ 
-        _id: id, 
-        userId: req.user.id 
-      });
+      const deletedMood = await Mood.findOneAndDelete({ _id: id, userId: req.userId });
+      if (!deletedMood)
+        return res.status(404).json({ success: false, message: 'Mood not found' });
 
-      if (!deletedMood) {
-        return res.status(404).json({
-          success: false,
-          message: 'Mood not found'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Mood deleted successfully'
-      });
-
+      res.json({ success: true, message: 'Mood deleted successfully' });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to delete mood',
-        error: error.message
-      });
+      res.status(500).json({ success: false, message: 'Failed to delete mood', error: error.message });
     }
   },
 
   // Get mood stats
   getStats: async (req, res) => {
     try {
-      const moods = await mood.find({ userId: req.userId });
+      const moods = await Mood.find({ userId: req.userId }).sort({ date: -1 });
+      if (moods.length === 0)
+        return res.json({ success: true, data: { totalEntries: 0, averageMood: 0, trend: 'stable' } });
 
-      if (moods.length === 0) {
-        return res.json({
-          success: true,
-          data: {
-            totalEntries: 0,
-            averageMood: 0,
-            trend: 'stable'
-          }
-        });
-      }
-
-      // Calculate stats
       const totalEntries = moods.length;
       const averageMood = (moods.reduce((sum, m) => sum + m.mood, 0) / totalEntries).toFixed(1);
-      
-      // Simple trend calculation
+
       let trend = 'stable';
       if (moods.length >= 4) {
         const recent = moods.slice(0, 2);
         const older = moods.slice(2, 4);
         const recentAvg = recent.reduce((sum, m) => sum + m.mood, 0) / recent.length;
         const olderAvg = older.reduce((sum, m) => sum + m.mood, 0) / older.length;
-        
         if (recentAvg > olderAvg + 0.5) trend = 'improving';
         else if (recentAvg < olderAvg - 0.5) trend = 'declining';
       }
 
-      res.json({
-        success: true,
-        data: {
-          totalEntries,
-          averageMood: parseFloat(averageMood),
-          trend
-        }
-      });
-
+      res.json({ success: true, data: { totalEntries, averageMood: parseFloat(averageMood), trend } });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to get stats',
-        error: error.message
-      });
+      res.status(500).json({ success: false, message: 'Failed to get stats', error: error.message });
     }
   }
 };
