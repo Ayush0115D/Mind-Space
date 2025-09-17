@@ -1,85 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar, TrendingUp, TrendingDown, Minus, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// Memoized single entry to prevent unnecessary re-renders
+const MoodEntryItem = React.memo(({ entry, moodColors, moodLabels, moodEmojis, formatDate }) => (
+  <div className="bg-slate-800/40 backdrop-blur-sm rounded-lg p-4 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-200">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
+          <div className={`w-10 h-10 rounded-full ${moodColors[entry.mood]} flex items-center justify-center text-white font-bold`}>
+            {entry.mood}
+          </div>
+          <div className="text-2xl">{moodEmojis[entry.mood]}</div>
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-1">
+            <span className="font-medium text-white">{moodLabels[entry.mood]}</span>
+            <span className="text-slate-400 text-sm">•</span>
+            <span className="text-slate-400 text-sm">{formatDate(entry.date)}</span>
+            {entry.timestamp && (
+              <>
+                <span className="text-slate-400 text-sm">•</span>
+                <span className="text-slate-400 text-sm">{entry.timestamp}</span>
+              </>
+            )}
+          </div>
+          {entry.note && <p className="text-slate-300 text-sm">{entry.note}</p>}
+        </div>
+      </div>
+      <div className="flex items-center space-x-2">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`w-2 h-2 rounded-full ${
+              idx < entry.mood ? moodColors[entry.mood] : 'bg-slate-600'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+));
 
 const MoodHistory = ({ moodEntries = [] }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('week');
-  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const moodColors = {
+  const moodColors = useMemo(() => ({
     1: 'bg-red-500',
     2: 'bg-orange-500',
     3: 'bg-yellow-500',
     4: 'bg-green-500',
     5: 'bg-emerald-500'
-  };
+  }), []);
 
-  const moodLabels = {
+  const moodLabels = useMemo(() => ({
     1: 'Very Poor',
     2: 'Poor',
     3: 'Okay',
     4: 'Good',
     5: 'Excellent'
-  };
+  }), []);
 
-  const moodEmojis = {
+  const moodEmojis = useMemo(() => ({
     1: '😢',
     2: '😕',
     3: '😐',
     4: '😊',
     5: '😄'
-  };
+  }), []);
 
-  const periods = [
-    { value: 'week', label: 'Week' },
-    { value: 'month', label: 'Month' },
-    { value: 'year', label: 'Year' }
-  ];
-
-  const calculateAverage = () => {
-    if (moodEntries.length === 0) return 0;
+  // Calculate average mood
+  const average = useMemo(() => {
+    if (!moodEntries.length) return 0;
     const sum = moodEntries.reduce((acc, entry) => acc + entry.mood, 0);
     return (sum / moodEntries.length).toFixed(1);
-  };
+  }, [moodEntries]);
 
-  const getTrend = () => {
+  // Determine trend
+  const trend = useMemo(() => {
     if (moodEntries.length < 2) return 'stable';
-    
     const recent = moodEntries.slice(-3);
     const older = moodEntries.slice(-6, -3);
-    
-    const recentAvg = recent.reduce((acc, entry) => acc + entry.mood, 0) / recent.length;
-    const olderAvg = older.length > 0 ? older.reduce((acc, entry) => acc + entry.mood, 0) / older.length : recentAvg;
-    
+    const recentAvg = recent.reduce((acc, e) => acc + e.mood, 0) / recent.length;
+    const olderAvg = older.length ? older.reduce((acc, e) => acc + e.mood, 0) / older.length : recentAvg;
     if (recentAvg > olderAvg + 0.5) return 'improving';
     if (recentAvg < olderAvg - 0.5) return 'declining';
     return 'stable';
-  };
+  }, [moodEntries]);
 
+  // Format date in IST
   const formatDate = (dateString) => {
     const date = new Date(dateString);
+    const istOffset = 5.5 * 60; // +5:30 in minutes
+    const istDate = new Date(date.getTime() + istOffset * 60 * 1000);
+
     const today = new Date();
-    const yesterday = new Date(today);
+    const istToday = new Date(today.getTime() + istOffset * 60 * 1000);
+    const yesterday = new Date(istToday);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short',
-        month: 'short', 
-        day: 'numeric'
-      });
-    }
-  };
+    if (istDate.toDateString() === istToday.toDateString()) return 'Today';
+    if (istDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
 
-  const trend = getTrend();
-  const average = calculateAverage();
+    return istDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header with Stats */}
+      {/* Header & Stats */}
       <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
@@ -91,25 +118,22 @@ const MoodHistory = ({ moodEntries = [] }) => {
               <p className="text-slate-400 text-sm">Track your emotional journey</p>
             </div>
           </div>
-
           <div className="flex items-center space-x-2">
-            {periods.map((period) => (
+            {['week','month','year'].map((period) => (
               <button
-                key={period.value}
-                onClick={() => setSelectedPeriod(period.value)}
+                key={period}
+                onClick={() => setSelectedPeriod(period)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  selectedPeriod === period.value
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                  selectedPeriod === period ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                {period.label}
+                {period.charAt(0).toUpperCase() + period.slice(1)}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Quick Stats - Only show if there are entries */}
+        {/* Stats */}
         {moodEntries.length > 0 && (
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-slate-700/30 rounded-lg p-4">
@@ -136,117 +160,29 @@ const MoodHistory = ({ moodEntries = [] }) => {
           </div>
         )}
 
-        {/* Empty state message if no entries */}
+        {/* Empty state */}
         {moodEntries.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-slate-400 mb-4">
-              <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-            </div>
+            <Calendar size={48} className="mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-medium text-white mb-2">No mood entries yet</h3>
             <p className="text-slate-400 text-sm">Start tracking your mood to see statistics here</p>
           </div>
         )}
       </div>
 
-      {/* Navigation - Only show if there are entries */}
-      {moodEntries.length > 0 && (
-        <div className="flex items-center justify-between">
-          <button className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors duration-200">
-            <ChevronLeft size={16} className="text-slate-300" />
-            <span className="text-slate-300">Previous</span>
-          </button>
-          
-          <div className="text-white font-medium">
-            {selectedPeriod === 'week' && 'This Week'}
-            {selectedPeriod === 'month' && 'This Month'}
-            {selectedPeriod === 'year' && 'This Year'}
-          </div>
-          
-          <button className="flex items-center space-x-2 px-4 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors duration-200">
-            <span className="text-slate-300">Next</span>
-            <ChevronRight size={16} className="text-slate-300" />
-          </button>
-        </div>
-      )}
-
-      {/* Mood Entries List */}
+      {/* Mood List */}
       {moodEntries.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">Recent Entries</h3>
-            <button className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors duration-200">
-              <Filter size={16} />
-              <span className="text-sm">Filter</span>
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {moodEntries.map((entry, index) => (
-              <div
-                key={entry.id || index}
-                className="bg-slate-800/40 backdrop-blur-sm rounded-lg p-4 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-200"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full ${moodColors[entry.mood]} flex items-center justify-center text-white font-bold`}>
-                        {entry.mood}
-                      </div>
-                      <div className="text-2xl">{moodEmojis[entry.mood]}</div>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-white">{moodLabels[entry.mood]}</span>
-                        <span className="text-slate-400 text-sm">•</span>
-                        <span className="text-slate-400 text-sm">{formatDate(entry.date)}</span>
-                        {entry.timestamp && (
-                          <>
-                            <span className="text-slate-400 text-sm">•</span>
-                            <span className="text-slate-400 text-sm">{entry.timestamp}</span>
-                          </>
-                        )}
-                      </div>
-                      {entry.note && (
-                        <p className="text-slate-300 text-sm">{entry.note}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full ${
-                          index < entry.mood ? moodColors[entry.mood] : 'bg-slate-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Load More Button - Only show if there are many entries */}
-          {moodEntries.length > 5 && (
-            <div className="text-center">
-              <button className="px-6 py-3 bg-slate-700/50 hover:bg-slate-700 text-white rounded-lg transition-colors duration-200">
-                Load More Entries
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Alternative empty state for entries section */}
-      {moodEntries.length === 0 && (
-        <div className="text-center py-12 bg-slate-800/30 rounded-xl border border-slate-700/50">
-          <div className="text-slate-400 mb-4">
-            <Calendar size={48} className="mx-auto mb-4 opacity-50" />
-          </div>
-          <h3 className="text-lg font-medium text-white mb-2">Start your mood journey</h3>
-          <p className="text-slate-400 text-sm">Log your first mood entry to begin tracking your emotional well-being</p>
+          {moodEntries.map((entry, idx) => (
+            <MoodEntryItem
+              key={entry.id || idx}
+              entry={entry}
+              moodColors={moodColors}
+              moodLabels={moodLabels}
+              moodEmojis={moodEmojis}
+              formatDate={formatDate}
+            />
+          ))}
         </div>
       )}
     </div>

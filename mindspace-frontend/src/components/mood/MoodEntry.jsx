@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Heart, Plus } from 'lucide-react';
 
 const MoodEntry = ({ onAddEntry }) => {
@@ -9,7 +9,13 @@ const MoodEntry = ({ onAddEntry }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const handleSubmit = async () => {
+  // Memoize slider style for performance
+  const sliderStyle = useMemo(() => ({
+    background: `linear-gradient(to right, #8b5cf6 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`,
+  }), [mood]);
+
+  // Handle mood submission
+  const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
     setError('');
 
@@ -23,11 +29,7 @@ const MoodEntry = ({ onAddEntry }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          mood,
-          note,
-          date: today,
-        }),
+        body: JSON.stringify({ mood, note, date: today }),
       });
 
       // Ensure backend returned JSON
@@ -51,17 +53,13 @@ const MoodEntry = ({ onAddEntry }) => {
         setError(data.message || 'Failed to save mood');
         console.error('❌ API Error:', data.message);
       }
-    } catch (error) {
-      setError(error.message || 'Failed to save mood. Please try again.');
-      console.error('❌ Network Error:', error);
+    } catch (err) {
+      setError(err.message || 'Failed to save mood. Please try again.');
+      console.error('❌ Network Error:', err);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const sliderStyle = {
-    background: `linear-gradient(to right, #ec4899 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`,
-  };
+  }, [mood, note, onAddEntry, API_URL]);
 
   return (
     <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
@@ -77,6 +75,7 @@ const MoodEntry = ({ onAddEntry }) => {
       )}
 
       <div className="space-y-6">
+        {/* Mood Slider */}
         <div>
           <label className="block text-lg font-semibold text-gray-300 mb-4">
             Mood Level: <span className="text-purple-400 text-xl">{mood}/5</span>
@@ -87,7 +86,7 @@ const MoodEntry = ({ onAddEntry }) => {
             max="5"
             value={mood}
             onChange={(e) => setMood(parseInt(e.target.value))}
-            className="w-full h-2 rounded-lg cursor-pointer appearance-none accent-pink-500"
+            className="w-full h-2 rounded-lg cursor-pointer appearance-none accent-purple-700"
             style={sliderStyle}
             disabled={isSubmitting}
           />
@@ -100,6 +99,7 @@ const MoodEntry = ({ onAddEntry }) => {
           </div>
         </div>
 
+        {/* Note */}
         <div>
           <label className="block text-lg font-semibold text-gray-300 mb-3">
             Add a note (optional)
@@ -116,6 +116,7 @@ const MoodEntry = ({ onAddEntry }) => {
           />
         </div>
 
+        {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}

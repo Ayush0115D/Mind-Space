@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import MoodEntry from './MoodEntry';
 import MoodHistory from './MoodHistory';
 
@@ -7,14 +7,13 @@ const MoodTracker = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Get API URL from env
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // Fetch moods from API
   useEffect(() => {
     const fetchMoods = async () => {
       try {
         setIsLoading(true);
-
         const token = localStorage.getItem('token');
         if (!token) {
           setError('Please login to view your moods');
@@ -23,14 +22,9 @@ const MoodTracker = () => {
         }
 
         const response = await fetch(`${API_URL}/api/moods`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         });
 
-        // Check if response is JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           const text = await response.text();
@@ -39,17 +33,14 @@ const MoodTracker = () => {
         }
 
         const data = await response.json();
-
         if (response.ok && data.success) {
           setMoodEntries(data.data || []);
           console.log('✅ Moods loaded:', data.data.length);
         } else {
           setError(data.message || 'Failed to load moods');
-          console.error('❌ API Error:', data.message);
         }
-      } catch (error) {
-        setError(error.message || 'Failed to load moods');
-        console.error('❌ Network/Error:', error);
+      } catch (err) {
+        setError(err.message || 'Failed to load moods');
       } finally {
         setIsLoading(false);
       }
@@ -58,9 +49,16 @@ const MoodTracker = () => {
     fetchMoods();
   }, [API_URL]);
 
-  const addMoodEntry = (newEntry) => {
-    setMoodEntries([newEntry, ...moodEntries]);
-  };
+  // Add new mood entry efficiently using useCallback
+  const addMoodEntry = useCallback(
+    (newEntry) => {
+      setMoodEntries(prev => [newEntry, ...prev]);
+    },
+    []
+  );
+
+  // Memoize the mood entries to avoid re-rendering MoodHistory unnecessarily
+  const memoizedMoodEntries = useMemo(() => moodEntries, [moodEntries]);
 
   if (isLoading) {
     return (
@@ -81,7 +79,7 @@ const MoodTracker = () => {
   return (
     <div className="space-y-8">
       <MoodEntry onAddEntry={addMoodEntry} />
-      <MoodHistory moodEntries={moodEntries} />
+      <MoodHistory moodEntries={memoizedMoodEntries} />
     </div>
   );
 };
