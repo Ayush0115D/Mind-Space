@@ -1,51 +1,49 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Heart, Plus } from 'lucide-react';
 
-const MoodEntry = ({ onAddEntry }) => {
+const MoodEntry = ({ onAddEntry, apiUrl }) => {
   const [mood, setMood] = useState(3);
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // Fallback API URL if not passed as prop
+  const API_URL = apiUrl || import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Memoize slider style for performance
-  const sliderStyle = useMemo(() => ({
-    background: `linear-gradient(to right, #8b5cf6 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`,
-  }), [mood]);
-
-  // Handle mood submission
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     setError('');
-
+    
     try {
       const today = new Date().toISOString().split('T')[0];
-      const token = localStorage.getItem('token');
-
+      
+      // Get auth token (adjust this based on how you store your token)
+      const token = localStorage.getItem('token'); // or however you store it
+      
       const response = await fetch(`${API_URL}/api/moods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}` // Add your auth header
         },
-        body: JSON.stringify({ mood, note, date: today }),
+        body: JSON.stringify({
+          mood: mood,
+          note: note,
+          date: today
+        })
       });
-
-      // Ensure backend returned JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error("📥 Raw server response:", text);
-        throw new Error("Invalid server response (not JSON)");
-      }
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        const newEntry = { ...data.data, id: data.data._id };
+      if (data.success) {
+        // Add to local state for immediate UI update
+        const newEntry = {
+          ...data.data,
+          id: data.data._id
+        };
         onAddEntry(newEntry);
-
+        
+        // Reset form
         setMood(3);
         setNote('');
         console.log('✅ Mood saved successfully!');
@@ -53,13 +51,18 @@ const MoodEntry = ({ onAddEntry }) => {
         setError(data.message || 'Failed to save mood');
         console.error('❌ API Error:', data.message);
       }
-    } catch (err) {
-      setError(err.message || 'Failed to save mood. Please try again.');
-      console.error('❌ Network Error:', err);
+    } catch (error) {
+      setError('Failed to save mood. Please try again.');
+      console.error('❌ Network Error:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [mood, note, onAddEntry, API_URL]);
+  };
+
+  // Progress fill style (dynamic background based on mood value)
+  const sliderStyle = {
+    background: `linear-gradient(to right, #ec4899 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`
+  };
 
   return (
     <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
@@ -67,15 +70,14 @@ const MoodEntry = ({ onAddEntry }) => {
         <Heart className="w-7 h-7 text-pink-400" />
         <span>How are you feeling today?</span>
       </h3>
-
+      
       {error && (
         <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
           {error}
         </div>
       )}
-
+      
       <div className="space-y-6">
-        {/* Mood Slider */}
         <div>
           <label className="block text-lg font-semibold text-gray-300 mb-4">
             Mood Level: <span className="text-purple-400 text-xl">{mood}/5</span>
@@ -86,7 +88,7 @@ const MoodEntry = ({ onAddEntry }) => {
             max="5"
             value={mood}
             onChange={(e) => setMood(parseInt(e.target.value))}
-            className="w-full h-2 rounded-lg cursor-pointer appearance-none accent-purple-700"
+            className="w-full h-2 rounded-lg cursor-pointer appearance-none accent-pink-500"
             style={sliderStyle}
             disabled={isSubmitting}
           />
@@ -98,8 +100,7 @@ const MoodEntry = ({ onAddEntry }) => {
             <span>Excellent</span>
           </div>
         </div>
-
-        {/* Note */}
+        
         <div>
           <label className="block text-lg font-semibold text-gray-300 mb-3">
             Add a note (optional)
@@ -115,8 +116,7 @@ const MoodEntry = ({ onAddEntry }) => {
             disabled={isSubmitting}
           />
         </div>
-
-        {/* Submit Button */}
+        
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
