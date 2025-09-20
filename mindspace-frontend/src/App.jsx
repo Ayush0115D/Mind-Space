@@ -3,26 +3,22 @@ import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Dashboard from './components/dashboard/Dashboard';
 import MoodTracker from './components/mood/MoodTracker';
-import Journal from './components/journal/Journal';
-import Community from './components/community/Community';
 import LoginPage from './components/auth/LoginPage';
 
 const App = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // 👈 added
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-
     if (token && savedUser) {
       setIsAuthenticated(true);
       setUser(JSON.parse(savedUser));
     }
-
-    setLoading(false); // 👈 mark done
+    setLoading(false);
   }, []);
 
   const handleLogin = (userData) => {
@@ -39,7 +35,6 @@ const App = () => {
   };
 
   if (loading) {
-    // ⏳ while checking auth, show splash/loading screen instead of login flicker
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-400"></div>
@@ -60,8 +55,6 @@ const App = () => {
           <div className="flex-1">
             {currentView === 'dashboard' && <Dashboard user={user} />}
             {currentView === 'mood' && <MoodTracker user={user} />}
-            {currentView === 'journal' && <Journal user={user} />}
-            {currentView === 'community' && <Community user={user} />}
           </div>
         </div>
       </div>
