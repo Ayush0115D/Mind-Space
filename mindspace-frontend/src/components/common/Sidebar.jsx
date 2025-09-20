@@ -1,10 +1,11 @@
 import React from 'react';
-import { TrendingUp, Smile } from 'lucide-react';
+import { TrendingUp, Smile, Target } from 'lucide-react';
 
 const Sidebar = ({ currentView, setCurrentView }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp, color: 'purple' },
-    { id: 'mood', label: 'Mood Tracker', icon: Smile, color: 'pink' }
+    { id: 'mood', label: 'Mood Tracker', icon: Smile, color: 'pink' },
+    { id: 'goals', label: 'Goals & Habits', icon: Target, color: 'blue' }
   ];
 
   const getColorClasses = (color, isActive) => {
@@ -14,7 +15,10 @@ const Sidebar = ({ currentView, setCurrentView }) => {
         : 'text-gray-400 hover:bg-purple-600/10 hover:text-purple-400',
       pink: isActive
         ? 'bg-pink-600/20 text-pink-400 border-pink-500/50 shadow-lg shadow-pink-500/20'
-        : 'text-gray-400 hover:bg-pink-600/10 hover:text-pink-400'
+        : 'text-gray-400 hover:bg-pink-600/10 hover:text-pink-400',
+      blue: isActive
+        ? 'bg-blue-600/20 text-blue-400 border-blue-500/50 shadow-lg shadow-blue-500/20'
+        : 'text-gray-400 hover:bg-blue-600/10 hover:text-blue-400'
     };
     return colors[color];
   };
