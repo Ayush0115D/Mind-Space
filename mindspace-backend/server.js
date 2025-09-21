@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const mindmapRoutes = require('./routes/mindmaps');
 const moodRoutes = require('./routes/moods');
 const goalRoutes = require('./routes/goals');
+const dashboardRoutes = require('./routes/dashboard'); // ADD THIS LINE
 
 dotenv.config();
 const app = express();
@@ -43,11 +44,17 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/mindmaps', mindmapRoutes);
 app.use('/api/moods', moodRoutes);
- app.use('/api/goals', goalRoutes);
- 
+app.use('/api/goals', goalRoutes);
+app.use('/api/dashboard', dashboardRoutes); // ADD THIS LINE
+
 // Health check
 app.get('/', (req, res) => {
   res.json({ message: 'Mind-Space Backend API' });
+});
+
+// Add this for debugging
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working', timestamp: new Date() });
 });
 
 // Start server
