@@ -151,5 +151,4 @@ const GoalsHabitsTracker = () => {
     </div>
   );
 };
-
 export default GoalsHabitsTracker;

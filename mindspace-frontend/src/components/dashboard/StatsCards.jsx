@@ -1,37 +1,35 @@
 import React from 'react';
-import { Activity, BookOpen, Users } from 'lucide-react';
+import { Activity, Target } from 'lucide-react';
 
-const StatsCards = () => {
-  const stats = [
+const StatsCards = ({ stats = {} }) => {
+  const defaultStats = {
+    averageMood: stats.averageMood || null,
+    goalsCount: stats.goalsCount || 0,
+    period: stats.period || 'Last 7 days'
+  };
+
+  const statsData = [
     {
       title: 'Average Mood',
-      value: '4.2/5',
-      subtitle: 'Last 7 days',
+      value: defaultStats.averageMood ? `${defaultStats.averageMood}/5` : '--',
+      subtitle: defaultStats.period,
       icon: Activity,
       gradient: 'from-purple-400 to-pink-400',
       bgColor: 'hover:shadow-purple-500/10'
     },
     {
-      title: 'Journal Entries',
-      value: '12',
-      subtitle: 'Total entries',
-      icon: BookOpen,
+      title: 'Active Goals',
+      value: defaultStats.goalsCount.toString(),
+      subtitle: 'Goals in progress',
+      icon: Target,
       gradient: 'from-emerald-400 to-cyan-400',
       bgColor: 'hover:shadow-emerald-500/10'
-    },
-    {
-      title: 'Community',
-      value: '8',
-      subtitle: 'Active posts',
-      icon: Users,
-      gradient: 'from-blue-400 to-indigo-400',
-      bgColor: 'hover:shadow-blue-500/10'
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {stats.map((stat, index) => {
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {statsData.map((stat, index) => {
         const Icon = stat.icon;
         return (
           <div

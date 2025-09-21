@@ -1,14 +1,7 @@
 import React from 'react';
 import { Smile, Meh, Frown, Calendar } from 'lucide-react';
 
-const RecentEntries = () => {
-  const recentMoods = [
-    { date: '2025-09-03', mood: 4, note: 'Feeling positive today, work went well and had a great lunch with friends' },
-    { date: '2025-09-02', mood: 3, note: 'Regular Tuesday, nothing special but got things done' },
-    { date: '2025-09-01', mood: 4, note: 'Productive Monday, achieved most of my weekly goals' },
-    { date: '2025-08-31', mood: 5, note: 'Amazing weekend! Went hiking and felt so refreshed' },
-  ];
-
+const RecentEntries = ({ recentMoods = [], weeklyAverage = null }) => {
   const getMoodColor = (mood) => {
     if (mood >= 4) return 'bg-emerald-900/30 border-emerald-500/50 ring-1 ring-emerald-500/20';
     if (mood >= 3) return 'bg-amber-900/30 border-amber-500/50 ring-1 ring-amber-500/20';
@@ -35,19 +28,34 @@ const RecentEntries = () => {
     return 'Very Low';
   };
 
+  if (recentMoods.length === 0) {
+    return (
+      <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-3">
+          <Calendar className="w-6 h-6 text-emerald-400" />
+          <span>Recent Mood Entries</span>
+        </h3>
+        <div className="text-center py-8">
+          <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-400 text-lg">No mood entries yet</p>
+          <p className="text-gray-500 text-sm mt-2">Start tracking your mood to see your recent entries here</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50 animate-slide-up">
+    <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
       <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-3">
         <Calendar className="w-6 h-6 text-emerald-400" />
         <span>Recent Mood Entries</span>
-        <span className="ml-auto text-sm font-normal text-gray-400">Last 4 entries</span>
+        <span className="ml-auto text-sm font-normal text-gray-400">Last {recentMoods.length} entries</span>
       </h3>
       <div className="space-y-4">
         {recentMoods.map((entry, index) => (
           <div 
-            key={index} 
-            className={`p-5 rounded-xl border ${getMoodColor(entry.mood)} hover:scale-[1.02] transition-all duration-200 animate-slide-up`}
-            style={{ animationDelay: `${index * 0.1}s` }}
+            key={`${entry.date}-${index}`} 
+            className={`p-5 rounded-xl border ${getMoodColor(entry.mood)} hover:scale-[1.02] transition-all duration-200`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-4 flex-1">
@@ -68,7 +76,9 @@ const RecentEntries = () => {
                       {getMoodLabel(entry.mood)}
                     </span>
                   </div>
-                  <p className="text-gray-300 text-sm leading-relaxed">{entry.note}</p>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {entry.note || 'No notes added'}
+                  </p>
                 </div>
               </div>
               <div className="ml-4 text-right">
@@ -80,15 +90,20 @@ const RecentEntries = () => {
         ))}
       </div>
       
-      <div className="mt-6 p-4 bg-gray-700/30 rounded-xl border border-gray-600/50">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">This week's average:</span>
-          <span className="font-semibold text-white">3.8/5</span>
+      {weeklyAverage && (
+        <div className="mt-6 p-4 bg-gray-700/30 rounded-xl border border-gray-600/50">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Weekly average:</span>
+            <span className="font-semibold text-white">{weeklyAverage}/5</span>
+          </div>
+          <div className="mt-2 w-full bg-gray-600/50 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-500" 
+              style={{width: `${(weeklyAverage / 5) * 100}%`}}
+            ></div>
+          </div>
         </div>
-        <div className="mt-2 w-full bg-gray-600/50 rounded-full h-2">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{width: '76%'}}></div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

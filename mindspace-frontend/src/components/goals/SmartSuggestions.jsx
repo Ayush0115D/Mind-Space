@@ -3,10 +3,10 @@ import { Brain } from 'lucide-react';
 
 const SmartSuggestions = ({ currentMood }) => {
   const moodBasedSuggestions = [
-    { mood: 'low', suggestion: 'Feeling low? Try a 5-minute walk outdoors 🚶‍♀️', action: 'Take a Walk' },
-    { mood: 'stressed', suggestion: 'Stress detected. How about some deep breathing? 🧘‍♂️', action: 'Breathe' },
-    { mood: 'energetic', suggestion: 'Great energy! Perfect time for that workout 💪', action: 'Exercise' },
-    { mood: 'tired', suggestion: 'Looking tired? Maybe focus on your sleep goal tonight 😴', action: 'Rest' }
+    { mood: 'stressed', suggestion: 'Feeling stressed? How about some deep breathing? 🧘‍♂️', action: 'Breathe' },
+    { mood: 'tired', suggestion: 'Looking tired? Maybe focus on your sleep goal tonight 😴', action: 'Rest' },
+        { mood: 'low', suggestion: 'Feeling low? Try a 5-minute walk outdoors 🚶‍♀️', action: 'Take a Walk' },
+    { mood: 'energetic', suggestion: 'Great energy! Perfect time for that workout 💪', action: 'Exercise' }
   ];
 
   return (
