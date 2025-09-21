@@ -52,7 +52,7 @@ const MoodTracker = () => {
         }
       } catch (err) {
         if (err.name === 'AbortError') {
-          setError('Loading timeout - please check your connection');
+          setError('Loading timeout - please check your connection or refresh the page');
         } else {
           setError(err.message || 'Failed to load moods');
         }
