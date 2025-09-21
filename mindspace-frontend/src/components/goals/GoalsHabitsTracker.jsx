@@ -140,15 +140,14 @@ const GoalsHabitsTracker = () => {
 
       {/* Add Goal Modal */}
       {showAddGoal && (
-        <AddGoalModel 
-          newGoal={newGoal} 
-          setNewGoal={setNewGoal} 
-          addGoal={addGoal} 
-          onClose={() => setShowAddGoal(false)} 
-          categories={categories} 
-          iconOptions={iconOptions} 
-        />
-      )}
+       <AddGoalModel 
+         isOpen={showAddGoal}               // important!
+       onClose={() => setShowAddGoal(false)}
+       onAddGoal={(goal) => setGoals([...goals, goal])}  // add goal from modal
+       categories={categories}
+      //  iconOptions={iconOptions}
+     />
+      )}  
     </div>
   );
 };

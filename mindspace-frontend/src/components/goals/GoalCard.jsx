@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
-  CheckCircle2, Circle, Flame, Award, Target,
-  Book, Dumbbell, Moon, Users, Coffee, Camera, Heart, Brain, Music
+  CheckCircle2, Circle, Flame, Award,
+  Target, Book, Dumbbell, Moon, Users, Coffee, Camera, Heart, Brain, Music
 } from 'lucide-react';
 
 const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
