@@ -16,53 +16,49 @@ const MoodEntry = ({ onAddEntry, apiUrl }) => {
     
     try {
       const today = new Date().toISOString().split('T')[0];
-      
-      // Get auth token (adjust this based on how you store your token)
-      const token = localStorage.getItem('token'); // or however you store it
+      const token = localStorage.getItem('token');
       
       const response = await fetch(`${API_URL}/api/moods`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Add your auth header
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          mood: mood,
-          note: note,
+          mood,
+          note,
           date: today
         })
       });
 
       const data = await response.json();
 
-      if (data.success) {
-        // Add to local state for immediate UI update
+      if (response.ok && data.success) {
+        // Always use `_id` (not `id`)
         const newEntry = {
           ...data.data,
-          id: data.data._id
+          _id: data.data._id
         };
         onAddEntry(newEntry);
         
         // Reset form
         setMood(3);
         setNote('');
-        console.log('✅ Mood saved successfully!');
       } else {
         setError(data.message || 'Failed to save mood');
-        console.error('❌ API Error:', data.message);
       }
     } catch (error) {
       setError('Failed to save mood. Please try again.');
-      console.error('❌ Network Error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Progress fill style (dynamic background based on mood value)
-  const sliderStyle = {
-    background: `linear-gradient(to right, #ec4899 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`
-  };
+   // Progress fill style (dynamic background based on mood value)
+const sliderStyle = {
+  background: `linear-gradient(to right, #8b5cf6 ${(mood - 1) * 25}%, #374151 ${(mood - 1) * 25}%)`
+};
 
   return (
     <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">

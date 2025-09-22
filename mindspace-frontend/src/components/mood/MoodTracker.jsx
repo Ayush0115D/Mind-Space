@@ -14,48 +14,27 @@ const MoodTracker = () => {
       try {
         setIsLoading(true);
         const token = localStorage.getItem('token');
-        
         if (!token) {
           setError('Please login to view your moods');
           setIsLoading(false);
           return;
         }
 
-        // Add timeout to prevent hanging
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout for faster response
-
         const response = await fetch(`${API_URL}/api/moods`, {
           headers: { 
             'Content-Type': 'application/json', 
             'Authorization': `Bearer ${token}` 
-          },
-          signal: controller.signal
+          }
         });
 
-        clearTimeout(timeoutId);
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          console.error("Raw server response:", text);
-          throw new Error("Invalid server response (not JSON)");
-        }
-
         const data = await response.json();
-        
         if (response.ok && data.success) {
           setMoodEntries(data.data || []);
-          console.log('Moods loaded:', data.data.length);
         } else {
           setError(data.message || 'Failed to load moods');
         }
       } catch (err) {
-        if (err.name === 'AbortError') {
-          setError('Loading timeout - please check your connection or refresh the page');
-        } else {
-          setError(err.message || 'Failed to load moods');
-        }
+        setError(err.message || 'Failed to load moods');
       } finally {
         setIsLoading(false);
       }
@@ -64,7 +43,7 @@ const MoodTracker = () => {
     fetchMoods();
   }, [API_URL]);
 
-  // Add new mood entry efficiently using useCallback
+  // Add new mood entry
   const addMoodEntry = useCallback((newEntry) => {
     setMoodEntries(prev => [newEntry, ...prev]);
   }, []);
@@ -83,10 +62,9 @@ const MoodTracker = () => {
       });
 
       const data = await response.json();
-      
       if (response.ok && data.success) {
-        setMoodEntries(prev => 
-          prev.map(entry => 
+        setMoodEntries(prev =>
+          prev.map(entry =>
             entry._id === id ? { ...entry, ...data.data } : entry
           )
         );
@@ -105,13 +83,10 @@ const MoodTracker = () => {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/api/moods/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
-      
       if (response.ok && data.success) {
         setMoodEntries(prev => prev.filter(entry => entry._id !== id));
         return { success: true };
@@ -123,7 +98,6 @@ const MoodTracker = () => {
     }
   }, [API_URL]);
 
-  // Memoize the mood entries to avoid re-rendering MoodHistory unnecessarily
   const memoizedMoodEntries = useMemo(() => moodEntries, [moodEntries]);
 
   if (isLoading) {
@@ -148,7 +122,11 @@ const MoodTracker = () => {
   return (
     <div className="space-y-8">
       <MoodEntry onAddEntry={addMoodEntry} />
-      <MoodHistory moodEntries={moodEntries} />
+      <MoodHistory 
+        moodEntries={memoizedMoodEntries} 
+        onUpdateMood={updateMoodEntry} 
+        onDeleteMood={deleteMoodEntry} 
+      />
     </div>
   );
 };

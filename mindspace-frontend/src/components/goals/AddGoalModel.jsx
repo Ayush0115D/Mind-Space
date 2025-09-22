@@ -4,10 +4,12 @@ import {
   Camera, Music, Heart, Brain
 } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
   const [newGoal, setNewGoal] = useState({
     title: '',
-    category: 'all', // default to 'all'
+    category: 'all',
     target: 7,
     icon: 'target'
   });
@@ -38,23 +40,48 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
     social: ['users', 'heart', 'coffee'],
     physical: ['dumbbell', 'heart', 'target'],
     sleep: ['moon', 'coffee'],
-    all: Object.keys(iconOptions) // show all icons
+    all: Object.keys(iconOptions)
   };
 
-  const handleAddGoal = () => {
-    if (!newGoal.title.trim()) return;
+ const handleAddGoal = async () => {
+  if (!newGoal.title.trim()) return;
 
-    const goal = {
-      id: Date.now(),
-      ...newGoal,
-      streak: 0,
-      completed: false,
-      color: categories[newGoal.category]?.color || '#3b82f6'
-    };
-    onAddGoal(goal);
+  const goalPayload = {
+    title: newGoal.title,
+    category: newGoal.category === 'all' ? 'mental' : newGoal.category, // pick default if 'all'
+    target: newGoal.target,
+    icon: newGoal.icon
+  };
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/goals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(goalPayload)
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to add goal');
+    }
+
+    const savedGoal = await res.json();
+
+    // Update parent state
+    onAddGoal(savedGoal);
+
+    // Reset form
     setNewGoal({ title: '', category: 'all', target: 7, icon: 'target' });
     onClose();
-  };
+  } catch (err) {
+    console.error('Error adding goal:', err);
+    alert('Failed to add goal. Please try again.');
+  }
+};
+
 
   if (!isOpen) return null;
 
