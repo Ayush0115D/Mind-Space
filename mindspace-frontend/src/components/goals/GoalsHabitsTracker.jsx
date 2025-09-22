@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Target, Brain, Dumbbell, Moon, Users, Coffee, Camera, Heart, Book } from 'lucide-react';
+import { Plus, Target, Brain, Dumbbell, Moon, Users } from 'lucide-react';
 import SmartSuggestions from './SmartSuggestions';
 import CategoryFilter from './CategoryFilter';
 import GoalCard from './GoalCard';
@@ -11,6 +11,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const GoalsHabitsTracker = () => {
   const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -34,6 +35,8 @@ const GoalsHabitsTracker = () => {
       setGoals(data);
     } catch (err) {
       console.error('Error fetching goals:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,11 +100,22 @@ const GoalsHabitsTracker = () => {
     }
   };
 
+  // Filtered goals by category
   const filteredGoals = selectedCategory === 'all'
     ? goals
     : goals.filter(g => g.category === selectedCategory);
 
-  const completedToday = goals.filter(g => g.completed).length;
+  // Calculate completed today based on lastCompleted
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const completedToday = goals.filter(g => {
+    if (!g.lastCompleted) return false;
+    const last = new Date(g.lastCompleted);
+    last.setHours(0, 0, 0, 0);
+    return last.getTime() === today.getTime();
+  }).length;
+
   const longestStreak = goals.length > 0 ? Math.max(...goals.map(g => g.streak)) : 0;
 
   const getMotivationalMessage = () => {
@@ -137,7 +151,7 @@ const GoalsHabitsTracker = () => {
       {/* Motivational Banner */}
       <MotivationalBanner
         message={getMotivationalMessage()}
-        stats={{ completedToday, totalGoals: goals.length }}
+        goals={goals}
       />
 
       {/* Smart Suggestions */}
@@ -152,10 +166,12 @@ const GoalsHabitsTracker = () => {
 
       {/* Goals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {filteredGoals.length > 0 ? (
+        {loading ? (
+          <p className="text-gray-400 text-center py-12 col-span-full">Loading goals...</p>
+        ) : filteredGoals.length > 0 ? (
           filteredGoals.map(goal => (
             <GoalCard
-              key={goal._id} // ✅ Use backend _id for unique key
+              key={goal._id}
               goal={goal}
               onToggleCompletion={() => toggleGoal(goal)}
               onDelete={() => deleteGoal(goal._id)}

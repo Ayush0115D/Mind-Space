@@ -46,7 +46,7 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
         {/* Completion Toggle & Delete */}
         <div className="flex items-center space-x-2">
           <button 
-            onClick={() => onToggleCompletion(goal.id)}
+            onClick={() => onToggleCompletion(goal._id)}
             className="transition-colors duration-200"
           >
             {goal.completed ? 
@@ -56,7 +56,7 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
           </button>
 
           <button 
-            onClick={() => onDelete(goal.id)}
+            onClick={() => onDelete(goal._id)}
             className="text-red-500 hover:text-red-400 transition-colors duration-200"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

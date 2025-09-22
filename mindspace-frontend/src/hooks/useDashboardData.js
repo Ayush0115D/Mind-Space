@@ -43,10 +43,7 @@ export const useDashboardData = () => {
       setStats(data.statistics || { averageMood: 0, goalsCount: 0, period: '' });
       setWeeklyAverage(data.weekly?.weeklyAverage || 0);
 
-      // Debug log
-      console.log("📊 Dashboard API response:", data);
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
       setError(err.message);
 
       // Reset state on error

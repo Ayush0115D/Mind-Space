@@ -9,7 +9,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
   const [newGoal, setNewGoal] = useState({
     title: '',
-    category: 'all',
+    category: 'mental', // default backend category
     target: 7,
     icon: 'target'
   });
@@ -34,54 +34,50 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
   };
 
   const categoryIcons = {
-    mental: ['brain', 'target'],
-    fitness: ['dumbbell', 'moon'],
-    creative: ['camera', 'music', 'book'],
-    social: ['users', 'heart', 'coffee'],
-    physical: ['dumbbell', 'heart', 'target'],
+    mental: ['brain', 'target', 'book'],
+    physical: ['dumbbell', 'heart'],
     sleep: ['moon', 'coffee'],
-    all: Object.keys(iconOptions)
+    social: ['users', 'heart', 'coffee'],
+    creative: ['camera', 'music', 'book']
   };
 
- const handleAddGoal = async () => {
-  if (!newGoal.title.trim()) return;
+  const handleAddGoal = async () => {
+    if (!newGoal.title.trim()) return alert('Please enter a goal title');
 
-  const goalPayload = {
-    title: newGoal.title,
-    category: newGoal.category === 'all' ? 'mental' : newGoal.category, // pick default if 'all'
-    target: newGoal.target,
-    icon: newGoal.icon
-  };
+    const goalPayload = {
+      title: newGoal.title,
+      category: newGoal.category,
+      target: Math.min(Math.max(newGoal.target, 1), 365), // ensure 1–365
+      icon: newGoal.icon
+    };
 
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/goals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(goalPayload)
-    });
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/api/goals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(goalPayload)
+      });
 
-    if (!res.ok) {
-      throw new Error('Failed to add goal');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to add goal');
+      }
+
+      const savedGoal = await res.json();
+      onAddGoal(savedGoal);
+
+      // Reset form
+      setNewGoal({ title: '', category: 'mental', target: 7, icon: 'target' });
+      onClose();
+    } catch (err) {
+      console.error('Error adding goal:', err);
+      alert(err.message || 'Failed to add goal. Please try again.');
     }
-
-    const savedGoal = await res.json();
-
-    // Update parent state
-    onAddGoal(savedGoal);
-
-    // Reset form
-    setNewGoal({ title: '', category: 'all', target: 7, icon: 'target' });
-    onClose();
-  } catch (err) {
-    console.error('Error adding goal:', err);
-    alert('Failed to add goal. Please try again.');
-  }
-};
-
+  };
 
   if (!isOpen) return null;
 
@@ -108,14 +104,20 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
             <label className="block text-sm font-medium mb-2">Category</label>
             <select
               value={newGoal.category}
-              onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
+              onChange={(e) => {
+                const cat = e.target.value;
+                setNewGoal({
+                  ...newGoal,
+                  category: cat,
+                  icon: categoryIcons[cat][0] // default icon for category
+                });
+              }}
               className="w-full px-4 py-3 border border-gray-700 bg-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              <option value="all">All</option>
-              {Object.entries(categories)
-                .filter(([key]) => key !== 'all')
-                .map(([key, cat]) => (
-                  <option key={key} value={key}>{cat.label}</option>
+              {Object.keys(categories)
+                .filter(key => key !== 'all')
+                .map(key => (
+                  <option key={key} value={key}>{categories[key].label}</option>
                 ))}
             </select>
           </div>
@@ -126,7 +128,7 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
             <input
               type="number"
               value={newGoal.target}
-              onChange={(e) => setNewGoal({ ...newGoal, target: parseInt(e.target.value) })}
+              onChange={(e) => setNewGoal({ ...newGoal, target: parseInt(e.target.value) || 1 })}
               min="1"
               max="365"
               className="w-full px-4 py-3 text-lg border border-gray-700 bg-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -179,5 +181,4 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
     </div>
   );
 };
-
 export default AddGoalModel;
