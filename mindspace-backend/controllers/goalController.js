@@ -1,12 +1,12 @@
 const Goal = require('../models/Goal');
 
 const goalController = {
-  // GET /api/goals - Get all goals for user
+  // GET /api/goals - Get all active goals for user
   getAllGoals: async (req, res) => {
     try {
       const goals = await Goal.find({ 
         userId: req.user.id, 
-        isActive: true 
+        completed: false  // Active goals are those not completed
       }).sort({ createdAt: -1 });
       
       res.json(goals);
@@ -44,7 +44,7 @@ const goalController = {
     }
   },
 
-  // PUT /api/goals/:id - Update goal
+  // PUT /api/goals/:id - Update goal (excluding completed/streak)
   updateGoal: async (req, res) => {
     try {
       const goal = await Goal.findOne({ 
@@ -56,7 +56,14 @@ const goalController = {
         return res.status(404).json({ message: 'Goal not found' });
       }
 
-      Object.assign(goal, req.body);
+      // Only update safe fields
+      const { title, category, icon, color, target } = req.body;
+      if (title) goal.title = title;
+      if (category) goal.category = category;
+      if (icon) goal.icon = icon;
+      if (color) goal.color = color;
+      if (target) goal.target = target;
+
       await goal.save();
       res.json(goal);
     } catch (error) {
@@ -91,7 +98,7 @@ const goalController = {
         goal.completed = false;
         goal.streak = Math.max(0, goal.streak - 1);
         goal.completionHistory = goal.completionHistory.filter(
-          h => h.date.toDateString() !== today.toDateString()
+          h => new Date(h.date).toDateString() !== today.toDateString()
         );
       }
 
@@ -103,7 +110,7 @@ const goalController = {
     }
   },
 
-  // DELETE /api/goals/:id - Delete goal
+  // DELETE /api/goals/:id - Soft delete goal
   deleteGoal: async (req, res) => {
     try {
       const goal = await Goal.findOne({ 
@@ -115,7 +122,10 @@ const goalController = {
         return res.status(404).json({ message: 'Goal not found' });
       }
 
+      // Mark goal as completed and inactive
+      goal.completed = true;
       goal.isActive = false;
+
       await goal.save();
       res.json({ message: 'Goal deleted successfully' });
     } catch (error) {
@@ -129,7 +139,7 @@ const goalController = {
     try {
       const goals = await Goal.find({ 
         userId: req.user.id, 
-        isActive: true 
+        completed: false  // Only active goals
       });
 
       const stats = {
@@ -138,7 +148,9 @@ const goalController = {
         longestStreak: Math.max(...goals.map(g => g.streak), 0),
         goalsAchieved: goals.filter(g => g.streak >= g.target).length,
         overallProgress: goals.length > 0 
-          ? Math.round(goals.reduce((acc, g) => acc + Math.min((g.streak / g.target) * 100, 100), 0) / goals.length)
+          ? Math.round(
+              goals.reduce((acc, g) => acc + Math.min((g.streak / g.target) * 100, 100), 0) / goals.length
+            )
           : 0
       };
 

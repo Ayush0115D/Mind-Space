@@ -1,4 +1,3 @@
-// routes/dashboard.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
@@ -7,7 +6,6 @@ const mongoose = require('mongoose');
 const Mood = require('../models/mood');
 const Goal = require('../models/Goal');
 
-// GET /dashboard - consolidated endpoint
 router.get('/', auth, async (req, res) => {
   try {
     const userId = req.userId;
@@ -56,7 +54,7 @@ router.get('/', auth, async (req, res) => {
 
     const activeGoalsCount = await Goal.countDocuments({
       userId,
-      isActive: true
+      completed: false  // Only active goals
     });
 
     const weeklyAverage = averageMood; // same logic as stats
