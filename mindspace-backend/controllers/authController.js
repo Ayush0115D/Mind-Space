@@ -1,10 +1,13 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+// Generate token without expiry
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback-secret', {
-    expiresIn: '7d'
-  });
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET || 'fallback-secret'
+    // no expiresIn -> token never expires
+  );
 };
 
 const register = async (req, res) => {

@@ -1,138 +1,80 @@
 // routes/dashboard.js
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth'); // Your existing auth middleware
+const auth = require('../middleware/auth');
 const mongoose = require('mongoose');
 
-// Import your existing models - adjust paths if needed
-const Mood = require('../models/mood'); // or wherever your mood model is
-const Goal = require('../models/Goal'); // or wherever your goal model is
+const Mood = require('../models/mood');
+const Goal = require('../models/Goal');
 
-// Get recent mood entries for dashboard
-router.get('/recent-moods', auth, async (req, res) => {
+// GET /dashboard - consolidated endpoint
+router.get('/', auth, async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 4;
-    
-    const recentMoods = await Mood.find({ 
-      user: new mongoose.Types.ObjectId(req.user.userId) 
-    })
+    const userId = req.userId;
+
+    // ---------- Recent moods ----------
+    const recentLimit = parseInt(req.query.recentLimit) || 4;
+    const recentMoodsRaw = await Mood.find({ userId })
       .sort({ date: -1 })
-      .limit(limit)
+      .limit(recentLimit)
       .select('date mood note -_id');
 
-    // Format dates for frontend
-    const formattedMoods = recentMoods.map(mood => ({
-      date: mood.date.toISOString().split('T')[0], // YYYY-MM-DD format
-      mood: mood.mood,
-      note: mood.note || ''
+    const recentMoods = recentMoodsRaw.map(m => ({
+      date: m.date,
+      mood: m.mood,
+      note: m.note || ''
     }));
 
-    res.json(formattedMoods);
-  } catch (error) {
-    console.error('Error fetching recent moods:', error);
-    res.status(500).json({ message: 'Failed to fetch recent moods', error: error.message });
-  }
-});
-
-// Get mood chart data for dashboard
-router.get('/mood-chart', auth, async (req, res) => {
-  try {
-    const days = parseInt(req.query.days) || 7;
+    // ---------- Mood chart data ----------
+    const chartDays = parseInt(req.query.chartDays) || 7;
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - chartDays);
 
-    const chartData = await Mood.find({
-      user: new mongoose.Types.ObjectId(req.user.userId),
-      date: { $gte: startDate }
-    })
-    .sort({ date: 1 })
-    .select('date mood -_id');
+    const chartDataRaw = await Mood.find({ userId })
+      .sort({ date: 1 })
+      .select('date mood -_id');
 
-    // Format data for recharts
-    const formattedData = chartData.map(mood => ({
-      date: mood.date.toISOString().split('T')[0],
-      mood: mood.mood
-    }));
+    const chartData = chartDataRaw
+      .filter(m => new Date(m.date) >= startDate)
+      .map(m => ({
+        date: m.date,
+        mood: m.mood
+      }));
 
-    res.json(formattedData);
-  } catch (error) {
-    console.error('Error fetching mood chart data:', error);
-    res.status(500).json({ message: 'Failed to fetch mood chart data', error: error.message });
-  }
-});
-
-// Get dashboard statistics
-router.get('/stats', auth, async (req, res) => {
-  try {
+    // ---------- Statistics ----------
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Get average mood for last 7 days
-    const moodStats = await Mood.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(req.user.userId),
-          date: { $gte: sevenDaysAgo }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          averageMood: { $avg: '$mood' }
-        }
-      }
-    ]);
+    const moodsLast7Days = await Mood.find({ userId });
+    const filteredMoods7Days = moodsLast7Days.filter(m => new Date(m.date) >= sevenDaysAgo);
 
-    // Get active goals count
+    const averageMood = filteredMoods7Days.length > 0
+      ? Math.round(
+          filteredMoods7Days.reduce((sum, m) => sum + m.mood, 0) / filteredMoods7Days.length * 10
+        ) / 10
+      : 0;
+
     const activeGoalsCount = await Goal.countDocuments({
-      user: new mongoose.Types.ObjectId(req.user.userId),
-      status: 'active'
+      userId,
+      isActive: true
     });
 
-    const averageMood = moodStats.length > 0 
-      ? Math.round(moodStats[0].averageMood * 10) / 10 
-      : null;
+    const weeklyAverage = averageMood; // same logic as stats
 
+    // ---------- Final response ----------
     res.json({
-      averageMood,
-      goalsCount: activeGoalsCount,
-      period: 'Last 7 days'
+      recent: recentMoods,
+      chart: chartData,
+      statistics: {
+        averageMood,
+        goalsCount: activeGoalsCount,
+        period: 'Last 7 days'
+      },
+      weekly: { weeklyAverage }
     });
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
-    res.status(500).json({ message: 'Failed to fetch dashboard stats', error: error.message });
-  }
-});
-
-// Get weekly average for recent entries component
-router.get('/weekly-average', auth, async (req, res) => {
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const weeklyStats = await Mood.aggregate([
-      {
-        $match: {
-          user: new mongoose.Types.ObjectId(req.user.userId),
-          date: { $gte: sevenDaysAgo }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          averageMood: { $avg: '$mood' }
-        }
-      }
-    ]);
-
-    const weeklyAverage = weeklyStats.length > 0 
-      ? Math.round(weeklyStats[0].averageMood * 10) / 10 
-      : null;
-
-    res.json({ weeklyAverage });
-  } catch (error) {
-    console.error('Error fetching weekly average:', error);
-    res.status(500).json({ message: 'Failed to fetch weekly average', error: error.message });
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ message: 'Failed to fetch dashboard data', error: error.message });
   }
 });
 
