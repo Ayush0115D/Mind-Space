@@ -46,16 +46,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Refresh Button */}
+      {/* Dashboard Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">Dashboard</h2>
-        <button 
-          onClick={refreshData}
-          className="text-sm text-purple-300 hover:text-purple-200 transition-colors flex items-center space-x-1"
-        >
-          <span>🔄</span>
-          <span>Refresh</span>
-        </button>
       </div>
 
       <StatsCards stats={stats} />

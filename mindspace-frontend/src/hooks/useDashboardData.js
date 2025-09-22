@@ -1,20 +1,18 @@
 // hooks/useDashboardData.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const useDashboardData = () => {
   const [recentMoods, setRecentMoods] = useState([]);
   const [chartData, setChartData] = useState([]);
-  const [stats, setStats] = useState({});
-  const [weeklyAverage, setWeeklyAverage] = useState(null);
+  const [stats, setStats] = useState({ averageMood: 0, goalsCount: 0, period: '' });
+  const [weeklyAverage, setWeeklyAverage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Get auth token from localStorage
-  const getAuthToken = () => {
-    return localStorage.getItem('token');
-  };
+  const getAuthToken = () => localStorage.getItem('token');
 
   // Create headers with auth token
   const getHeaders = () => {
@@ -25,63 +23,45 @@ export const useDashboardData = () => {
     };
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-
       const headers = getHeaders();
+      const res = await fetch(`${API_BASE}/api/dashboard`, { headers });
 
-      // Fetch all dashboard data in parallel
-      const [recentRes, chartRes, statsRes, weeklyRes] = await Promise.all([
-        fetch(`${API_BASE}/api/dashboard/recent-moods`, { headers }),
-        fetch(`${API_BASE}/api/dashboard/mood-chart`, { headers }),
-        fetch(`${API_BASE}/api/dashboard/stats`, { headers }),
-        fetch(`${API_BASE}/api/dashboard/weekly-average`, { headers })
-      ]);
-
-      // Check if any request failed
-      if (!recentRes.ok || !chartRes.ok || !statsRes.ok || !weeklyRes.ok) {
+      if (!res.ok) {
         throw new Error('Failed to fetch dashboard data');
       }
 
-      // Parse all responses
-      const [recent, chart, statistics, weekly] = await Promise.all([
-        recentRes.json(),
-        chartRes.json(),
-        statsRes.json(),
-        weeklyRes.json()
-      ]);
+      const data = await res.json();
 
-      // Set state with fetched data
-      setRecentMoods(recent);
-      setChartData(chart);
-      setStats(statistics);
-      setWeeklyAverage(weekly.weeklyAverage);
+      // Map backend response to frontend state
+      setRecentMoods(data.recent || []);
+      setChartData(data.chart || []);
+      setStats(data.statistics || { averageMood: 0, goalsCount: 0, period: '' });
+      setWeeklyAverage(data.weekly?.weeklyAverage || 0);
 
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError(error.message);
-      
-      // Set empty data on error to prevent component crashes
+      // Debug log
+      console.log("📊 Dashboard API response:", data);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message);
+
+      // Reset state on error
       setRecentMoods([]);
       setChartData([]);
-      setStats({});
-      setWeeklyAverage(null);
+      setStats({ averageMood: 0, goalsCount: 0, period: '' });
+      setWeeklyAverage(0);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchDashboardData();
   }, []);
 
-  // Refresh function for manual updates
-  const refreshData = () => {
+  useEffect(() => {
     fetchDashboardData();
-  };
+  }, [fetchDashboardData]);
 
   return {
     recentMoods,
@@ -90,6 +70,6 @@ export const useDashboardData = () => {
     weeklyAverage,
     loading,
     error,
-    refreshData
+    refreshData: fetchDashboardData
   };
 };
