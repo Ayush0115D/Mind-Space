@@ -1,18 +1,20 @@
 import React from 'react';
+import { Sparkles } from 'lucide-react';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import StatsCards from './StatsCards';
 import MoodChart from './MoodChart';
 import RecentEntries from './RecentEntries';
+import MotivationalQuoteCard from './MotivationalQuoteCard'; // Add this import
 
 const Dashboard = () => {
-  const { 
-    recentMoods, 
-    chartData, 
-    stats, 
+  const {
+    recentMoods,
+    chartData,
+    stats,
     weeklyAverage,
-    loading, 
-    error, 
-    refreshData 
+    loading,
+    error,
+    refreshData
   } = useDashboardData();
 
   if (loading) {
@@ -33,7 +35,7 @@ const Dashboard = () => {
           <div className="text-red-400 text-4xl mb-4">⚠️</div>
           <h3 className="text-white text-lg mb-2">Unable to load dashboard</h3>
           <p className="text-gray-400 mb-4">{error}</p>
-          <button 
+          <button
             onClick={refreshData}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
@@ -48,26 +50,28 @@ const Dashboard = () => {
     <div className="space-y-12">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Dashboard</h2>
+        <div className="flex items-center space-x-3 group">
+          <Sparkles className="w-7 h-7 text-blue-400 animate-pulse" />
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-cyan-500 bg-clip-text text-transparent group-hover:from-pink-400 group-hover:to-purple-400 transition-all duration-300">
+            Your Wellness Hub
+          </h2>
+          <Sparkles className="w-5 h-5 text-blue-400 animate-pulse delay-75" />
+        </div>
       </div>
 
-      {/* Stats Cards - will now only show Average Mood */}
-      <StatsCards stats={stats} />
+      {/* Stats Cards Grid - now includes the quote card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <StatsCards stats={stats} />
+        <MotivationalQuoteCard />
+      </div>
 
       {/* Mood Trend Analysis and Recent Mood Entries */}
       <div className="space-y-8">
         <MoodChart moodData={chartData} />
-        <RecentEntries 
-          recentMoods={recentMoods} 
-          weeklyAverage={weeklyAverage} 
+        <RecentEntries
+          recentMoods={recentMoods}
+          weeklyAverage={weeklyAverage}
         />
-      </div>
-
-      {/* Motivational Quote */}
-      <div className="text-center mt-8">
-        <p className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400  to-green-400 soft-glow">
-          “Every day may not be good, but there’s something good in every day.”
-        </p>
       </div>
     </div>
   );
