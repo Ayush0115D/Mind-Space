@@ -79,3 +79,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .animate-slide-up {
   animation: slideUp 0.3s ease-out;
 }
+@keyframes softGlow {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.soft-glow {
+  animation: softGlow 6s ease-in-out infinite;
+}

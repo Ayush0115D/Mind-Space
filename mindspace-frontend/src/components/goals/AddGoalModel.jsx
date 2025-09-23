@@ -4,12 +4,10 @@ import {
   Camera, Music, Heart, Brain
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
 const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
   const [newGoal, setNewGoal] = useState({
     title: '',
-    category: 'mental', // default backend category
+    category: 'all',
     target: 7,
     icon: 'target'
   });
@@ -21,39 +19,36 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
   };
 
   const iconLabels = {
-    target: 'Focus Goal',
-    book: 'Learning Goal',
-    dumbbell: 'Fitness Goal',
-    moon: 'Sleep Goal',
-    users: 'Social Goal',
-    coffee: 'Energy Goal',
-    camera: 'Creative Goal',
-    music: 'Music Goal',
-    heart: 'Health Goal',
+    target: 'Focus Goal', book: 'Learning Goal', dumbbell: 'Fitness Goal',
+    moon: 'Sleep Goal', users: 'Social Goal', coffee: 'Energy Goal',
+    camera: 'Creative Goal', music: 'Music Goal', heart: 'Health Goal',
     brain: 'Mental Goal'
   };
 
   const categoryIcons = {
-    mental: ['brain', 'target', 'book'],
-    physical: ['dumbbell', 'heart'],
-    sleep: ['moon', 'coffee'],
+    mental: ['brain', 'target'],
+    physical: ['dumbbell', 'heart', 'target'],
+    creative: ['camera', 'music', 'book'],
     social: ['users', 'heart', 'coffee'],
-    creative: ['camera', 'music', 'book']
+    sleep: ['moon', 'coffee'],
+    all: Object.keys(iconOptions)
   };
 
   const handleAddGoal = async () => {
-    if (!newGoal.title.trim()) return alert('Please enter a goal title');
+    const title = newGoal.title.trim();
+    const category = newGoal.category === 'all' ? 'mental' : newGoal.category;
+    const target = parseInt(newGoal.target, 10);
 
-    const goalPayload = {
-      title: newGoal.title,
-      category: newGoal.category,
-      target: Math.min(Math.max(newGoal.target, 1), 365), // ensure 1–365
-      icon: newGoal.icon
-    };
+    if (!title || !category || !target || target < 1 || target > 365) {
+      alert('Please enter a valid title, category, and target (1–365 days).');
+      return;
+    }
+
+    const goalPayload = { title, category, target, icon: newGoal.icon };
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/api/goals`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/goals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,19 +58,19 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to add goal');
+        const errData = await res.json();
+        throw new Error(errData.message || 'Failed to add goal');
       }
 
       const savedGoal = await res.json();
       onAddGoal(savedGoal);
 
       // Reset form
-      setNewGoal({ title: '', category: 'mental', target: 7, icon: 'target' });
+      setNewGoal({ title: '', category: 'all', target: 7, icon: 'target' });
       onClose();
     } catch (err) {
       console.error('Error adding goal:', err);
-      alert(err.message || 'Failed to add goal. Please try again.');
+      alert(err.message);
     }
   };
 
@@ -87,7 +82,6 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
         <h2 className="text-2xl font-bold mb-6">Add New Goal</h2>
 
         <div className="space-y-4">
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium mb-2">Goal Title</label>
             <input
@@ -99,43 +93,34 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
             />
           </div>
 
-          {/* Category */}
           <div>
             <label className="block text-sm font-medium mb-2">Category</label>
             <select
               value={newGoal.category}
-              onChange={(e) => {
-                const cat = e.target.value;
-                setNewGoal({
-                  ...newGoal,
-                  category: cat,
-                  icon: categoryIcons[cat][0] // default icon for category
-                });
-              }}
+              onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
               className="w-full px-4 py-3 border border-gray-700 bg-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              {Object.keys(categories)
-                .filter(key => key !== 'all')
-                .map(key => (
-                  <option key={key} value={key}>{categories[key].label}</option>
+              <option value="all">All</option>
+              {Object.entries(categories)
+                .filter(([key]) => key !== 'all')
+                .map(([key, cat]) => (
+                  <option key={key} value={key}>{cat.label}</option>
                 ))}
             </select>
           </div>
 
-          {/* Target Days */}
           <div>
             <label className="block text-sm font-medium mb-2">Target Days</label>
             <input
               type="number"
               value={newGoal.target}
-              onChange={(e) => setNewGoal({ ...newGoal, target: parseInt(e.target.value) || 1 })}
+              onChange={(e) => setNewGoal({ ...newGoal, target: parseInt(e.target.value) })}
               min="1"
               max="365"
               className="w-full px-4 py-3 text-lg border border-gray-700 bg-gray-800 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
-          {/* Icon Selection */}
           <div>
             <label className="block text-sm font-medium mb-2">Icon</label>
             <div className="grid grid-cols-5 gap-3">
@@ -162,7 +147,6 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex space-x-3 mt-6">
           <button
             onClick={onClose}
@@ -181,4 +165,5 @@ const AddGoalModel = ({ isOpen, onClose, onAddGoal, categories }) => {
     </div>
   );
 };
+
 export default AddGoalModel;

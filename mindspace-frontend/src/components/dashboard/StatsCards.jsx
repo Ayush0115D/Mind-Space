@@ -1,10 +1,9 @@
 import React from 'react';
-import { Activity, Target } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 const StatsCards = ({ stats = {} }) => {
   const defaultStats = {
     averageMood: stats.averageMood || null,
-    goalsCount: stats.goalsCount || 0,
     period: stats.period || 'Last 7 days'
   };
 
@@ -16,14 +15,6 @@ const StatsCards = ({ stats = {} }) => {
       icon: Activity,
       gradient: 'from-purple-400 to-pink-400',
       bgColor: 'hover:shadow-purple-500/10'
-    },
-    {
-      title: 'Active Goals',
-      value: defaultStats.goalsCount.toString(),
-      subtitle: 'Goals in progress',
-      icon: Target,
-      gradient: 'from-emerald-400 to-cyan-400',
-      bgColor: 'hover:shadow-emerald-500/10'
     }
   ];
 

@@ -45,20 +45,29 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">Dashboard</h2>
       </div>
 
+      {/* Stats Cards - will now only show Average Mood */}
       <StatsCards stats={stats} />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      {/* Mood Trend Analysis and Recent Mood Entries */}
+      <div className="space-y-8">
+        <MoodChart moodData={chartData} />
         <RecentEntries 
           recentMoods={recentMoods} 
           weeklyAverage={weeklyAverage} 
         />
-        <MoodChart moodData={chartData} />
+      </div>
+
+      {/* Motivational Quote */}
+      <div className="text-center mt-8">
+        <p className="text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400  to-green-400 soft-glow">
+          “Every day may not be good, but there’s something good in every day.”
+        </p>
       </div>
     </div>
   );

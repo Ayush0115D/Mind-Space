@@ -1,4 +1,3 @@
-// hooks/useDashboardData.js
 import { useState, useEffect, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -6,15 +5,13 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 export const useDashboardData = () => {
   const [recentMoods, setRecentMoods] = useState([]);
   const [chartData, setChartData] = useState([]);
-  const [stats, setStats] = useState({ averageMood: 0, goalsCount: 0, period: '' });
+  const [stats, setStats] = useState({ averageMood: 0, period: '' }); // removed completedGoals & longestStreak
   const [weeklyAverage, setWeeklyAverage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Get auth token from localStorage
   const getAuthToken = () => localStorage.getItem('token');
 
-  // Create headers with auth token
   const getHeaders = () => {
     const token = getAuthToken();
     return {
@@ -30,26 +27,28 @@ export const useDashboardData = () => {
     try {
       const headers = getHeaders();
       const res = await fetch(`${API_BASE}/api/dashboard`, { headers });
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch dashboard data');
-      }
+      if (!res.ok) throw new Error('Failed to fetch dashboard data');
 
       const data = await res.json();
 
-      // Map backend response to frontend state
       setRecentMoods(data.recent || []);
       setChartData(data.chart || []);
-      setStats(data.statistics || { averageMood: 0, goalsCount: 0, period: '' });
-      setWeeklyAverage(data.weekly?.weeklyAverage || 0);
 
+      // Keep only Average Mood & period
+      const statistics = data.statistics || {};
+      setStats({
+        averageMood: statistics.averageMood || 0,
+        period: statistics.period || 'Last 7 days'
+      });
+
+      setWeeklyAverage(data.weekly?.weeklyAverage || 0);
     } catch (err) {
+      console.error('❌ Dashboard fetch error:', err);
       setError(err.message);
 
-      // Reset state on error
       setRecentMoods([]);
       setChartData([]);
-      setStats({ averageMood: 0, goalsCount: 0, period: '' });
+      setStats({ averageMood: 0, period: 'Last 7 days' });
       setWeeklyAverage(0);
     } finally {
       setLoading(false);

@@ -1,20 +1,10 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 
-const MotivationalBanner = ({ message, goals = [] }) => {  // <-- default empty array
-  // Calculate completed today based on lastCompleted date
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const completedToday = goals.filter(goal => {
-    if (!goal.lastCompleted) return false;
-    const last = new Date(goal.lastCompleted);
-    last.setHours(0, 0, 0, 0);
-    return last.getTime() === today.getTime();
-  }).length;
-
-  const totalGoals = goals.length;
-
+const MotivationalBanner = ({ message, stats }) => {
+  const completedToday = stats?.completedToday ?? 0;
+  const totalGoals = stats?.totalGoals ?? 0;
+  
   return (
     <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 text-white mb-6 shadow-xl border border-gray-700">
       <div className="flex items-center space-x-3">

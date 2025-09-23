@@ -11,7 +11,6 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const GoalsHabitsTracker = () => {
   const [goals, setGoals] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -28,15 +27,30 @@ const GoalsHabitsTracker = () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/goals`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch goals');
-      const data = await res.json();
-      setGoals(data);
+
+      const response = await res.json();
+      const data = response.success && response.data ? response.data : [];
+
+      // Normalize backend data
+      const normalizedGoals = (Array.isArray(data) ? data : []).map(g => ({
+        _id: g._id,
+        title: g.title || 'Untitled Goal',
+        category: g.category?.toLowerCase() || 'mental',
+        icon: g.icon || 'target',
+        streak: g.streak || 0,
+        target: g.target || 7,
+        completed: g.completed || g.streak >= g.target,
+        completionHistory: g.completionHistory || [],
+        color: categories[g.category?.toLowerCase()]?.color || '#6b7280',
+      }));
+
+      setGoals(normalizedGoals);
     } catch (err) {
       console.error('Error fetching goals:', err);
-    } finally {
-      setLoading(false);
+      setGoals([]);
     }
   };
 
@@ -45,38 +59,50 @@ const GoalsHabitsTracker = () => {
   }, []);
 
   // Add new goal
-  const addGoal = async (goalData) => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE}/api/goals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(goalData)
-      });
-      if (!res.ok) throw new Error('Failed to add goal');
-      const savedGoal = await res.json();
-      setGoals([...goals, savedGoal]);
-      setShowAddGoal(false);
-    } catch (err) {
-      console.error('Error adding goal:', err);
-      alert('Failed to add goal');
-    }
+  const addGoal = (savedGoal) => {
+    const goalData = savedGoal.data || savedGoal;
+    if (!goalData?._id) return;
+
+    const goalWithDefaults = {
+      _id: goalData._id,
+      title: goalData.title || 'Untitled Goal',
+      category: goalData.category?.toLowerCase() || 'mental',
+      icon: goalData.icon || 'target',
+      streak: goalData.streak || 0,
+      target: goalData.target || 7,
+      completed: goalData.completed || goalData.streak >= goalData.target,
+      completionHistory: goalData.completionHistory || [],
+      color: categories[goalData.category?.toLowerCase()]?.color || '#6b7280',
+    };
+
+    setGoals(prev => [...prev, goalWithDefaults]);
+    setShowAddGoal(false);
   };
 
-  // Toggle completion
+  // Toggle daily completion
   const toggleGoal = async (goal) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/goals/${goal._id}/toggle`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to toggle goal');
-      const updatedGoal = await res.json();
-      setGoals(goals.map(g => g._id === updatedGoal._id ? updatedGoal : g));
+
+      const response = await res.json();
+      const updatedGoal = response.data;
+
+      setGoals(prev =>
+        prev.map(g =>
+          g._id === updatedGoal._id
+            ? {
+                ...updatedGoal,
+                completed: updatedGoal.completed || updatedGoal.streak >= updatedGoal.target,
+                color: categories[updatedGoal.category?.toLowerCase()]?.color || '#6b7280',
+              }
+            : g
+        )
+      );
     } catch (err) {
       console.error('Error toggling goal:', err);
       alert('Failed to update goal');
@@ -86,44 +112,39 @@ const GoalsHabitsTracker = () => {
   // Delete goal
   const deleteGoal = async (goalId) => {
     if (!window.confirm('Delete this goal?')) return;
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/goals/${goalId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to delete goal');
-      setGoals(goals.filter(g => g._id !== goalId));
+
+      setGoals(prev => prev.filter(g => g._id !== goalId));
     } catch (err) {
       console.error('Error deleting goal:', err);
       alert('Failed to delete goal');
     }
   };
 
-  // Filtered goals by category
-  const filteredGoals = selectedCategory === 'all'
-    ? goals
-    : goals.filter(g => g.category === selectedCategory);
+  const allGoals = goals || [];
+  const filteredGoals =
+    selectedCategory === 'all'
+      ? allGoals
+      : allGoals.filter(g => g.category === selectedCategory);
 
-  // Calculate completed today based on lastCompleted
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const completedToday = goals.filter(g => {
-    if (!g.lastCompleted) return false;
-    const last = new Date(g.lastCompleted);
-    last.setHours(0, 0, 0, 0);
-    return last.getTime() === today.getTime();
-  }).length;
-
-  const longestStreak = goals.length > 0 ? Math.max(...goals.map(g => g.streak)) : 0;
+  const completedGoalsCount = allGoals.filter(g => g.completed).length;
+  const longestStreak =
+    allGoals.length > 0 ? Math.max(...allGoals.map(g => g.streak)) : 0;
 
   const getMotivationalMessage = () => {
-    if (completedToday === goals.length && goals.length > 0) return "🎉 Amazing! All goals completed!";
-    if (completedToday >= goals.length * 0.8) return "🌟 You're doing great!";
-    if (longestStreak >= 7) return `🔥 ${longestStreak}-day streak! Keep going!`;
-    if (completedToday > 0) return "👍 Good progress today!";
-    return "🌅 New day, new opportunities!";
+    if (completedGoalsCount === allGoals.length && allGoals.length > 0)
+      return 'Amazing! All goals completed!';
+    if (completedGoalsCount >= allGoals.length * 0.8) return "You're doing great!";
+    if (longestStreak >= 7) return `${longestStreak}-day streak! Keep going!`;
+    if (completedGoalsCount > 0) return 'Good progress today!';
+    return 'New day, new opportunities!';
   };
 
   return (
@@ -148,16 +169,12 @@ const GoalsHabitsTracker = () => {
         </button>
       </div>
 
-      {/* Motivational Banner */}
       <MotivationalBanner
         message={getMotivationalMessage()}
-        goals={goals}
+        stats={{ completedToday: completedGoalsCount, totalGoals: allGoals.length }}
       />
 
-      {/* Smart Suggestions */}
       <SmartSuggestions />
-
-      {/* Category Filter */}
       <CategoryFilter
         categories={categories}
         selectedCategory={selectedCategory}
@@ -166,9 +183,7 @@ const GoalsHabitsTracker = () => {
 
       {/* Goals Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {loading ? (
-          <p className="text-gray-400 text-center py-12 col-span-full">Loading goals...</p>
-        ) : filteredGoals.length > 0 ? (
+        {filteredGoals.length > 0 ? (
           filteredGoals.map(goal => (
             <GoalCard
               key={goal._id}
@@ -192,10 +207,8 @@ const GoalsHabitsTracker = () => {
         )}
       </div>
 
-      {/* Quick Stats */}
-      <ProgressOverview goals={goals} />
+      <ProgressOverview goals={allGoals} />
 
-      {/* Add Goal Modal */}
       {showAddGoal && (
         <AddGoalModel
           isOpen={showAddGoal}
@@ -207,4 +220,5 @@ const GoalsHabitsTracker = () => {
     </div>
   );
 };
+
 export default GoalsHabitsTracker;
