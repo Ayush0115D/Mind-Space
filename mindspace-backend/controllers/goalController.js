@@ -4,11 +4,7 @@ const goalController = {
   // GET /api/goals - Get all active goals
   getAllGoals: async (req, res) => {
     try {
-      const goals = await Goal.find({
-        userId: req.user.id,
-        isActive: true // include both completed and incomplete, exclude deleted
-      }).sort({ createdAt: -1 });
-
+      const goals = await Goal.find({ userId: req.user.id, isActive: true }).sort({ createdAt: -1 });
       res.json({ success: true, data: goals });
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -31,7 +27,10 @@ const goalController = {
         category,
         icon: icon || 'target',
         color: color || 'blue',
-        target
+        target,
+        streak: 0,
+        completionHistory: [],
+        isActive: true
       });
 
       await goal.save();
@@ -42,14 +41,10 @@ const goalController = {
     }
   },
 
-  // PUT /api/goals/:id - Update goal (excluding completed/streak)
+  // PUT /api/goals/:id - Update goal (excluding streak/completion)
   updateGoal: async (req, res) => {
     try {
-      const goal = await Goal.findOne({
-        _id: req.params.id,
-        userId: req.user.id
-      });
-
+      const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
       if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
 
       const { title, category, icon, color, target } = req.body;
@@ -67,14 +62,10 @@ const goalController = {
     }
   },
 
-  // POST /api/goals/:id/toggle - Toggle goal completion for today
+  // POST /api/goals/:id/toggle - Toggle daily progress
   toggleGoal: async (req, res) => {
     try {
-      const goal = await Goal.findOne({
-        _id: req.params.id,
-        userId: req.user.id
-      });
-
+      const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
       if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
 
       const today = new Date();
@@ -85,15 +76,11 @@ const goalController = {
       );
 
       if (!alreadyCompletedToday) {
-        // Mark today as completed
         goal.streak += 1;
-        goal.completed = true;
-        goal.lastCompleted = new Date();
-        goal.completionHistory.push({ date: new Date(), completed: true });
+        goal.lastCompleted = today;
+        goal.completionHistory.push({ date: today });
       } else {
-        // Unmark today
         goal.streak = Math.max(0, goal.streak - 1);
-        goal.completed = false;
         goal.completionHistory = goal.completionHistory.filter(
           h => new Date(h.date).toDateString() !== today.toDateString()
         );
@@ -107,19 +94,13 @@ const goalController = {
     }
   },
 
-  // DELETE /api/goals/:id - Soft delete goal
+  // DELETE /api/goals/:id - Soft delete
   deleteGoal: async (req, res) => {
     try {
-      const goal = await Goal.findOne({
-        _id: req.params.id,
-        userId: req.user.id
-      });
-
+      const goal = await Goal.findOne({ _id: req.params.id, userId: req.user.id });
       if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
 
-      goal.completed = true;
       goal.isActive = false;
-
       await goal.save();
       res.json({ success: true, message: 'Goal deleted successfully' });
     } catch (error) {
@@ -128,22 +109,14 @@ const goalController = {
     }
   },
 
-  // GET /api/goals/stats - Get goal statistics
+  // GET /api/goals/stats - Get goal statistics (removed completed goals count)
   getGoalStats: async (req, res) => {
     try {
       const goals = await Goal.find({ userId: req.user.id, isActive: true });
 
       const stats = {
         totalGoals: goals.length,
-        completedToday: goals.filter(g => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return g.completionHistory.some(
-            h => new Date(h.date).toDateString() === today.toDateString()
-          );
-        }).length,
-        longestStreak: Math.max(...goals.map(g => g.streak), 0),
-        goalsAchieved: goals.filter(g => g.streak >= g.target).length,
+        longestStreak: goals.length > 0 ? Math.max(...goals.map(g => g.streak)) : 0,
         overallProgress: goals.length > 0
           ? Math.round(
               goals.reduce((acc, g) => acc + Math.min((g.streak / g.target) * 100, 100), 0) / goals.length

@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const mongoose = require('mongoose');
-
 const Mood = require('../models/mood');
-const Goal = require('../models/Goal');
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -40,10 +37,9 @@ router.get('/', auth, async (req, res) => {
       }));
 
     // ---------- Statistics ----------
+    const moodsLast7Days = await Mood.find({ userId });
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const moodsLast7Days = await Mood.find({ userId });
     const filteredMoods7Days = moodsLast7Days.filter(m => new Date(m.date) >= sevenDaysAgo);
 
     const averageMood = filteredMoods7Days.length > 0
@@ -52,24 +48,17 @@ router.get('/', auth, async (req, res) => {
         ) / 10
       : 0;
 
-    const activeGoalsCount = await Goal.countDocuments({
-      userId,
-      completed: false  // Only active goals
-    });
-
-    const weeklyAverage = averageMood; // same logic as stats
-
     // ---------- Final response ----------
     res.json({
       recent: recentMoods,
       chart: chartData,
       statistics: {
         averageMood,
-        goalsCount: activeGoalsCount,
         period: 'Last 7 days'
       },
-      weekly: { weeklyAverage }
+      weekly: { weeklyAverage: averageMood }
     });
+
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     res.status(500).json({ message: 'Failed to fetch dashboard data', error: error.message });
