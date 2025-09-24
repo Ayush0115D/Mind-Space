@@ -37,8 +37,8 @@ const MotivationalQuoteCard = () => {
     <div className="bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-sm font-medium text-gray-400 mb-1">Daily Inspiration</p>
-          <p className="text-xs text-gray-500">Motivational Quote</p>
+          <p className="text-medium font-medium text-gray-300 mb-1">Daily Inspiration</p>
+          <p className="text-xs text-gray-500">(Motivational Quote)</p>
         </div>
         <div className="p-3 bg-purple-600/20 rounded-xl">
           <Quote className="w-8 h-8 text-purple-400" />
