@@ -3,9 +3,9 @@ import { Shield, Clock } from 'lucide-react';
 
 const CrisisSupport = () => {
   const crisisSupports = [
-    { name: "Crisis Text Line", contact: "Text HOME to 741741", available: "24/7" },
-    { name: "National Suicide Prevention", contact: "988", available: "24/7" },
-    { name: "SAMHSA Helpline", contact: "1-800-662-4357", available: "24/7" }
+    { name: "Tele-MANAS", contact: "14416 or 1800-891-4416", available: "24/7" },
+    { name: "National Suicide Prevention", contact: "call or text 988", available: "24/7" },
+    { name: "Emergency Helpline", contact: "112", available: "24/7" }
   ];
 
   return (

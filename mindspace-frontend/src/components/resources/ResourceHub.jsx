@@ -7,7 +7,6 @@ import {
   Brain,
   Users,
   Search,
-  Leaf,
 } from "lucide-react";
 import CrisisSupport from "./CrisisSupport";
 import ResourceSidebar from "./ResourceSidebar";
@@ -33,8 +32,7 @@ const ResourceHub = () => {
       category: "burnout",
       duration: "8 min read",
       rating: 4.8,
-      description:
-        "Learn to recognize early signs of burnout and discover effective recovery strategies that actually work.",
+      description: "Learn to recognize early signs of burnout and discover effective recovery strategies that actually work.",
       tags: ["workplace", "stress", "recovery"],
     },
     {
@@ -44,8 +42,7 @@ const ResourceHub = () => {
       category: "anxiety",
       duration: "15 min",
       rating: 4.9,
-      description:
-        "Guided meditation techniques specifically designed to calm anxious thoughts and restore inner peace.",
+      description: "Guided meditation techniques specifically designed to calm anxious thoughts and restore inner peace.",
       tags: ["mindfulness", "breathing", "calm"],
     },
     {
@@ -55,8 +52,7 @@ const ResourceHub = () => {
       category: "loneliness",
       duration: "32 min",
       rating: 4.7,
-      description:
-        "Expert insights on overcoming loneliness and building lasting relationships in our digital age.",
+      description: "Expert insights on overcoming loneliness and building lasting relationships in our digital age.",
       tags: ["social", "community", "friendship"],
     },
     {
@@ -66,8 +62,7 @@ const ResourceHub = () => {
       category: "motivation",
       duration: "6 min read",
       rating: 4.6,
-      description:
-        "Simple yet powerful practices to maintain motivation and momentum in your personal growth journey.",
+      description: "Simple yet powerful practices to maintain motivation and momentum in your personal growth journey.",
       tags: ["habits", "goals", "productivity"],
     },
     {
@@ -77,8 +72,7 @@ const ResourceHub = () => {
       category: "motivation",
       duration: "22 min",
       rating: 4.9,
-      description:
-        "Research-backed strategies for building mental strength and resilience in challenging times.",
+      description: "Research-backed strategies for building mental strength and resilience in challenging times.",
       tags: ["psychology", "resilience", "growth"],
     },
     {
@@ -88,21 +82,17 @@ const ResourceHub = () => {
       category: "relationships",
       duration: "28 min",
       rating: 4.8,
-      description:
-        "Transform your relationships through mindful listening and empathetic communication techniques.",
+      description: "Transform your relationships through mindful listening and empathetic communication techniques.",
       tags: ["communication", "empathy", "mindfulness"],
     },
   ];
 
   const filteredResources = resources.filter((resource) => {
-    const matchesFilter =
-      activeFilter === "all" || resource.category === activeFilter;
-    const matchesSearch =
+    const matchesFilter = activeFilter === "all" || resource.category === activeFilter;
+    const matchesSearch = 
       resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.tags.some((tag) =>
-        tag.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      resource.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
@@ -124,12 +114,10 @@ const ResourceHub = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full mx-auto mb-6"></div>
           <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Discover curated mental health resources, expert guidance, and
-            crisis support designed to empower your wellness journey
+            Discover curated mental health resources, expert guidance, and crisis support designed to empower your wellness journey
           </p>
         </div>
 
-        {/* Crisis Support */}
         <CrisisSupport />
 
         {/* Search and Filter */}
@@ -169,7 +157,7 @@ const ResourceHub = () => {
           </div>
         </div>
 
-        {/* Resources Section - Full Width */}
+        {/* Resources */}
         <div className="mb-20">
           <div className="grid gap-6 text-white">
             {filteredResources.length > 0 ? (
@@ -178,7 +166,6 @@ const ResourceHub = () => {
                   key={resource.id} 
                   className="bg-gray-900/60 backdrop-blur-xl border border-emerald-500/30 rounded-3xl p-8 hover:transform hover:scale-[1.02] transition-all duration-500 hover:bg-gray-900/80 hover:border-emerald-400/50 hover:shadow-2xl hover:shadow-emerald-500/20 group cursor-pointer overflow-hidden relative"
                 >
-                  {/* Subtle background pattern */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/5 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
                   
                   <div className="relative">
@@ -227,34 +214,9 @@ const ResourceHub = () => {
           </div>
         </div>
 
-        {/* Therapy Platforms & AI Recommendations - Below Resources */}
         <ResourceSidebar />
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-20">
-          <div className="bg-gradient-to-r from-emerald-500/20 via-green-500/15 to-teal-500/20 backdrop-blur-xl border border-emerald-400/40 rounded-3xl p-12 shadow-2xl shadow-emerald-900/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-emerald-400/10 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-400/30 to-teal-400/30 rounded-2xl mb-6">
-                <Leaf className="w-8 h-8 text-emerald-300" />
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-6">
-                Can't find what you're looking for?
-              </h3>
-              <p className="text-gray-200 mb-8 max-w-3xl mx-auto text-lg leading-relaxed">
-                Our AI-powered recommendation engine analyzes your mood
-                patterns, wellness goals, and preferences to suggest
-                personalized resources that match your unique journey.
-              </p>
-              <button className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-12 py-5 rounded-2xl font-bold text-lg hover:from-emerald-600 hover:to-teal-600 transform hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 border border-emerald-400/20">
-                Get Personalized Recommendations
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
 };
-
 export default ResourceHub;

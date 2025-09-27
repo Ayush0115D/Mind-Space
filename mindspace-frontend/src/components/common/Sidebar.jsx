@@ -1,12 +1,13 @@
 import React from 'react';
-import { TrendingUp, Smile, Target, BookOpen } from 'lucide-react'; // 
+import { TrendingUp, Smile, Target, BookOpen, Brain } from 'lucide-react';
 
 const Sidebar = ({ currentView, setCurrentView }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp, color: 'purple' },
     { id: 'mood', label: 'Mood Tracker', icon: Smile, color: 'pink' },
     { id: 'goals', label: 'Goals & Habits', icon: Target, color: 'blue' },
-    { id: 'resources', label: 'Resources', icon: BookOpen, color: 'green' } // 
+    { id: 'resources', label: 'Resources', icon: BookOpen, color: 'green' },
+    { id: 'ai-recommend', label: 'Recommendations', icon: Brain, color: 'indigo' }
   ];
 
   const getColorClasses = (color, isActive) => {
@@ -22,7 +23,10 @@ const Sidebar = ({ currentView, setCurrentView }) => {
         : 'text-gray-400 hover:bg-blue-600/10 hover:text-blue-400',
       green: isActive
         ? 'bg-green-600/20 text-green-400 border-green-500/50 shadow-lg shadow-green-500/20'
-        : 'text-gray-400 hover:bg-green-600/10 hover:text-green-400'
+        : 'text-gray-400 hover:bg-green-600/10 hover:text-green-400',
+      indigo: isActive
+        ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/50 shadow-lg shadow-indigo-500/20'
+        : 'text-gray-400 hover:bg-indigo-600/10 hover:text-indigo-400'
     };
     return colors[color];
   };
@@ -52,4 +56,5 @@ const Sidebar = ({ currentView, setCurrentView }) => {
     </div>
   );
 };
+
 export default Sidebar;

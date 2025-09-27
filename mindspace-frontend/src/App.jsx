@@ -4,7 +4,8 @@ import Sidebar from './components/common/Sidebar';
 import Dashboard from './components/dashboard/Dashboard';
 import MoodTracker from './components/mood/MoodTracker';
 import GoalsHabitsTracker from './components/goals/GoalsHabitsTracker';
-import ResourceHub from './components/resources/ResourceHub';   // 
+import ResourceHub from './components/resources/ResourceHub';
+import AIRecommendations from './components/ai-recommend/AIRecommendations';
 import LoginPage from './components/auth/LoginPage';
 
 const App = () => {
@@ -58,7 +59,8 @@ const App = () => {
             {currentView === 'dashboard' && <Dashboard user={user} />}
             {currentView === 'mood' && <MoodTracker user={user} />}
             {currentView === 'goals' && <GoalsHabitsTracker user={user} />}
-            {currentView === 'resources' && <ResourceHub user={user} />}   {/* ✅ New Section */}
+            {currentView === 'resources' && <ResourceHub user={user} />}
+            {currentView === 'ai-recommend' && <AIRecommendations user={user} />}
           </div>
         </div>
       </div>
