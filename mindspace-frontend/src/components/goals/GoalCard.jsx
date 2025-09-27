@@ -10,17 +10,33 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
     users: Users, coffee: Coffee, camera: Camera, music: Music,
     heart: Heart, brain: Brain
   };
-  
+ 
   const IconComponent = iconOptions[goal.icon] || Target;
   const progress = Math.min((goal.streak / goal.target) * 100, 100);
-  
+ 
   const getStreakColor = (streak) => {
     if (streak >= 21) return 'text-yellow-400';
     if (streak >= 7) return 'text-orange-400';
     if (streak >= 3) return 'text-green-400';
     return 'text-gray-400';
   };
-  
+
+  // Fixed: Check if goal was completed TODAY in IST
+  const isCompletedToday = () => {
+    if (!goal.lastCompleted) return false;
+    
+    // Convert both dates to IST for proper comparison
+    const today = new Date();
+    const istToday = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istToday.setHours(0, 0, 0, 0);
+    
+    const lastCompleted = new Date(goal.lastCompleted);
+    const istLastCompleted = new Date(lastCompleted.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istLastCompleted.setHours(0, 0, 0, 0);
+    
+    return istLastCompleted.getTime() === istToday.getTime();
+  };
+ 
   return (
     <div className="bg-gray-900 rounded-xl p-6 shadow-2xl border border-gray-700 hover:shadow-purple-900/50 transition-all duration-300 transform hover:-translate-y-1">
       <div className="flex items-start justify-between mb-4">
@@ -38,7 +54,7 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
             onClick={() => onToggleCompletion(goal)}
             className="transition-colors duration-200"
           >
-            {goal.completed ?
+            {isCompletedToday() ?
               <CheckCircle2 className="h-6 w-6 text-green-400" /> :
               <Circle className="h-6 w-6 text-gray-500 hover:text-green-400" />
             }
@@ -53,7 +69,7 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
           </button>
         </div>
       </div>
-      
+     
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-gray-400">Progress</span>
@@ -62,14 +78,14 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
         <div className="w-full bg-gray-800 rounded-full h-3">
           <div
             className="h-3 rounded-full transition-all duration-500 shadow-inner"
-            style={{ 
-              width: `${progress}%`, 
-              background: `linear-gradient(to right, ${goal.color}, ${goal.color}aa)` 
+            style={{
+              width: `${progress}%`,
+              background: `linear-gradient(to right, ${goal.color}, ${goal.color}aa)`
             }}
           ></div>
         </div>
       </div>
-      
+     
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Flame className={`h-5 w-5 ${getStreakColor(goal.streak)}`} />

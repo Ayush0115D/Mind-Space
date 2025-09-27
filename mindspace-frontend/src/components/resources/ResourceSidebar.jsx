@@ -20,7 +20,7 @@ const ResourceSidebar = () => {
             <h3 className="text-3xl font-bold text-white">Therapy Platforms</h3>
             <p className="text-emerald-300/80">Professional mental health support</p>
           </div>
-        </div>
+        </div> 
         
         {/* Grid layout for therapy platforms */}
         <div className="grid md:grid-cols-3 gap-6">

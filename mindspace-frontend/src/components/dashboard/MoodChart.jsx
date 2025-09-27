@@ -1,8 +1,43 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const MoodChart = ({ moodData = [] }) => {
+const MoodChart = memo(({ moodData = [] }) => {
+  // Memoize chart configuration to prevent recalculation
+  const chartConfig = useMemo(() => ({
+    gradient: {
+      id: "moodGradient",
+      x1: "0",
+      y1: "0", 
+      x2: "0",
+      y2: "1"
+    },
+    tooltipStyle: {
+      backgroundColor: '#1f2937',
+      border: '1px solid #374151',
+      borderRadius: '12px',
+      color: '#f3f4f6',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+    }
+  }), []);
+
+  // Memoize formatters to prevent recreation on every render
+  const formatters = useMemo(() => ({
+    xAxisFormatter: (value) => {
+      const date = new Date(value);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    },
+    tooltipLabelFormatter: (value) => {
+      const date = new Date(value);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric'
+      });
+    },
+    tooltipFormatter: (value) => [value, 'Mood Level']
+  }), []);
+
   if (moodData.length === 0) {
     return (
       <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-700/50">
@@ -28,50 +63,40 @@ const MoodChart = ({ moodData = [] }) => {
           Last {moodData.length} days
         </span>
       </h3>
+      
       <ResponsiveContainer width="100%" height={350}>
-        <AreaChart data={moodData}>
+        <AreaChart data={moodData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient {...chartConfig.gradient}>
               <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
               <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
             </linearGradient>
           </defs>
+          
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          
           <XAxis
             dataKey="date"
-            tickFormatter={(value) => {
-              const date = new Date(value);
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }}
+            tickFormatter={formatters.xAxisFormatter}
             tick={{ fill: '#9ca3af', fontSize: 12 }}
             axisLine={{ stroke: '#4b5563' }}
             tickLine={{ stroke: '#4b5563' }}
           />
-          <YAxis 
-            domain={[1, 5]} 
+          
+          <YAxis
+            domain={[1, 5]}
             tick={{ fill: '#9ca3af', fontSize: 12 }}
             axisLine={{ stroke: '#4b5563' }}
             tickLine={{ stroke: '#4b5563' }}
           />
+          
           <Tooltip
-            contentStyle={{
-              backgroundColor: '#1f2937',
-              border: '1px solid #374151',
-              borderRadius: '12px',
-              color: '#f3f4f6',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
-            }}
-            labelFormatter={(value) => {
-              const date = new Date(value);
-              return date.toLocaleDateString('en-US', { 
-                weekday: 'long',
-                month: 'long', 
-                day: 'numeric' 
-              });
-            }}
-            formatter={(value) => [value, 'Mood Level']}
+            contentStyle={chartConfig.tooltipStyle}
+            labelFormatter={formatters.tooltipLabelFormatter}
+            formatter={formatters.tooltipFormatter}
             labelStyle={{ color: '#d1d5db', fontWeight: 'bold' }}
           />
+          
           <Area
             type="monotone"
             dataKey="mood"
@@ -80,11 +105,14 @@ const MoodChart = ({ moodData = [] }) => {
             strokeWidth={3}
             dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: '#a855f7' }}
+            isAnimationActive={false} // Disable animation for better performance
           />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   );
-};
+});
+
+MoodChart.displayName = 'MoodChart';
 
 export default MoodChart;

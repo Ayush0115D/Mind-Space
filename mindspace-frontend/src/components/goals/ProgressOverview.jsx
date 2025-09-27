@@ -3,15 +3,21 @@ import { TrendingUp } from 'lucide-react';
 
 const ProgressOverview = ({ goals }) => {
   const getProgressPercentage = (streak, target) => Math.min((streak / target) * 100, 100);
-
-  // Calculate completed today based on lastCompleted date
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  
+  // Fixed date comparison for IST timezone
   const completedToday = goals.filter(goal => {
     if (!goal.lastCompleted) return false;
-    const last = new Date(goal.lastCompleted);
-    last.setHours(0, 0, 0, 0);
-    return last.getTime() === today.getTime();
+    
+    // Convert both dates to IST for proper comparison
+    const today = new Date();
+    const istToday = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istToday.setHours(0, 0, 0, 0);
+    
+    const lastCompleted = new Date(goal.lastCompleted);
+    const istLastCompleted = new Date(lastCompleted.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istLastCompleted.setHours(0, 0, 0, 0);
+    
+    return istLastCompleted.getTime() === istToday.getTime();
   }).length;
 
   const longestStreak = goals.length > 0 ? Math.max(...goals.map(g => g.streak)) : 0;

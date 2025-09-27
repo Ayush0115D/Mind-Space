@@ -22,6 +22,21 @@ const GoalsHabitsTracker = () => {
     social: { label: 'Social', icon: Users, color: '#ec4899' },
   };
 
+  // Helper function to check if goal was completed today
+  const isCompletedToday = (lastCompleted) => {
+    if (!lastCompleted) return false;
+    
+    const today = new Date();
+    const istToday = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istToday.setHours(0, 0, 0, 0);
+    
+    const lastCompletedDate = new Date(lastCompleted);
+    const istLastCompleted = new Date(lastCompletedDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    istLastCompleted.setHours(0, 0, 0, 0);
+    
+    return istLastCompleted.getTime() === istToday.getTime();
+  };
+
   // Fetch goals from backend
   const fetchGoals = async () => {
     try {
@@ -34,7 +49,7 @@ const GoalsHabitsTracker = () => {
       const response = await res.json();
       const data = response.success && response.data ? response.data : [];
 
-      // Normalize backend data
+      // Normalize backend data with proper completion tracking
       const normalizedGoals = (Array.isArray(data) ? data : []).map(g => ({
         _id: g._id,
         title: g.title || 'Untitled Goal',
@@ -42,7 +57,7 @@ const GoalsHabitsTracker = () => {
         icon: g.icon || 'target',
         streak: g.streak || 0,
         target: g.target || 7,
-        completed: g.completed || g.streak >= g.target,
+        lastCompleted: g.lastCompleted, // Important: Track when last completed
         completionHistory: g.completionHistory || [],
         color: categories[g.category?.toLowerCase()]?.color || '#6b7280',
       }));
@@ -70,7 +85,7 @@ const GoalsHabitsTracker = () => {
       icon: goalData.icon || 'target',
       streak: goalData.streak || 0,
       target: goalData.target || 7,
-      completed: goalData.completed || goalData.streak >= goalData.target,
+      lastCompleted: goalData.lastCompleted,
       completionHistory: goalData.completionHistory || [],
       color: categories[goalData.category?.toLowerCase()]?.color || '#6b7280',
     };
@@ -79,25 +94,33 @@ const GoalsHabitsTracker = () => {
     setShowAddGoal(false);
   };
 
-  // Toggle daily completion
+  // Fixed: Toggle daily completion with proper date handling
   const toggleGoal = async (goal) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/api/goals/${goal._id}/toggle`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        // Send current IST timestamp
+        body: JSON.stringify({
+          completedAt: new Date().toISOString()
+        })
       });
+      
       if (!res.ok) throw new Error('Failed to toggle goal');
 
       const response = await res.json();
       const updatedGoal = response.data;
 
+      // Update local state with the response from backend
       setGoals(prev =>
         prev.map(g =>
           g._id === updatedGoal._id
             ? {
                 ...updatedGoal,
-                completed: updatedGoal.completed || updatedGoal.streak >= updatedGoal.target,
                 color: categories[updatedGoal.category?.toLowerCase()]?.color || '#6b7280',
               }
             : g
@@ -134,7 +157,8 @@ const GoalsHabitsTracker = () => {
       ? allGoals
       : allGoals.filter(g => g.category === selectedCategory);
 
-  const completedGoalsCount = allGoals.filter(g => g.completed).length;
+  // Fixed: Use proper today completion check
+  const completedGoalsCount = allGoals.filter(g => isCompletedToday(g.lastCompleted)).length;
   const longestStreak =
     allGoals.length > 0 ? Math.max(...allGoals.map(g => g.streak)) : 0;
 
