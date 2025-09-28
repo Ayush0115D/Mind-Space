@@ -17,6 +17,9 @@ const AIRecommendations = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600/30 to-indigo-600/30 rounded-full mb-8 shadow-2xl shadow-blue-500/20">
             <Brain className="w-10 h-10 text-blue-300" />
           </div>
+<h3 className='text-red-500 bg-red-500/20 p-2 rounded-md'>
+  ⚠️ CAUTION!! WORK IN PROGRESS IN THIS SECTION
+</h3>
           <h2 className="text-5xl font-black text-transparent bg-gradient-to-r from-blue-300 via-indigo-300 to-slate-300 bg-clip-text mb-6 leading-tight">
             Personalized Recommendations
           </h2>

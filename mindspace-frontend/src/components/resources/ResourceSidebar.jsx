@@ -3,9 +3,27 @@ import { Brain, ExternalLink, Star } from 'lucide-react';
 
 const ResourceSidebar = () => {
   const therapyPlatforms = [
-    { name: "BetterHelp", description: "Professional therapy online", rating: 4.5, users: "2M+" },
-    { name: "Talkspace", description: "Text & video therapy", rating: 4.3, users: "1M+" },
-    { name: "Psychology Today", description: "Find local therapists", rating: 4.7, users: "500K+" }
+    { 
+      name: "TherapyMantra", 
+      description: "Online therapy & counselling", 
+      rating: 4.4, 
+      users: "100K+", 
+      url: "https://therapymantra.in"
+    },
+    { 
+      name: "Lissun", 
+      description: "1-on-1 counselling & self-help tools", 
+      rating: 4.5, 
+      users: "75K+", 
+      url: "https://www.lissun.app"
+    },
+    { 
+      name: "PsychiCare", 
+      description: "Therapy for individuals & couples", 
+      rating: 4.6, 
+      users: "50K+", 
+      url: "https://psychicare.com"
+    }
   ];
 
   return (
@@ -37,10 +55,15 @@ const ResourceSidebar = () => {
               </div>
             </div>
             <p className="text-gray-300 mb-4 leading-relaxed">{platform.description}</p>
-            <div className="flex items-center justify-between">
+            <a 
+              href={platform.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-between"
+            >
               <span className="text-emerald-300 font-semibold text-lg">{platform.users} users</span>
               <ExternalLink className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-            </div>
+            </a>
           </div>
         ))}
       </div>
