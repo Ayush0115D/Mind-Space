@@ -8,7 +8,8 @@ const authRoutes = require('./routes/auth');
 const mindmapRoutes = require('./routes/mindmaps');
 const moodRoutes = require('./routes/moods');
 const goalRoutes = require('./routes/goals');
-const dashboardRoutes = require('./routes/dashboard'); // ADD THIS LINE
+const dashboardRoutes = require('./routes/dashboard');
+const resourceRoutes = require('./routes/resources'); // ADD THIS LINE
 
 dotenv.config();
 const app = express();
@@ -45,7 +46,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/mindmaps', mindmapRoutes);
 app.use('/api/moods', moodRoutes);
 app.use('/api/goals', goalRoutes);
-app.use('/api/dashboard', dashboardRoutes); // ADD THIS LINE
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/resources', resourceRoutes); // ADD THIS LINE
 
 // Health check
 app.get('/', (req, res) => {
@@ -57,7 +59,14 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working', timestamp: new Date() });
 });
 
+// Test resource endpoint
+app.get('/api/resources/test', (req, res) => {
+  res.json({ message: 'Resources endpoint is working', timestamp: new Date() });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`📚 Resources endpoint: http://localhost:${PORT}/api/resources`);
 });
