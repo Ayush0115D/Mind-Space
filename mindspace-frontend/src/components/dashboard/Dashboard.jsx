@@ -12,11 +12,11 @@ import MoodChart from './MoodChart';
 
 // Loading component for Suspense fallbacks
 const ComponentLoader = memo(() => (
-  <div className="animate-pulse bg-gray-800/50 rounded-2xl p-6">
-    <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
+  <div className="animate-pulse bg-gray-900/50 rounded-2xl p-6">
+    <div className="h-4 bg-gray-800 rounded w-1/4 mb-4"></div>
     <div className="space-y-2">
-      <div className="h-3 bg-gray-700 rounded"></div>
-      <div className="h-3 bg-gray-700 rounded w-5/6"></div>
+      <div className="h-3 bg-gray-800 rounded"></div>
+      <div className="h-3 bg-gray-800 rounded w-5/6"></div>
     </div>
   </div>
 ));
@@ -66,7 +66,7 @@ const Dashboard = memo(() => {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 bg-gray-900/90 p-8 rounded-3xl shadow-lg">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-3 group">

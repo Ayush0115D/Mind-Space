@@ -50,7 +50,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-black-5800 via-gray-800 to-gray-900">
       <Header user={user} onLogout={handleLogout} />
       <div className="w-full px-8 sm:px-12 lg:px-24 py-8">
         <div className="flex flex-col lg:flex-row gap-8">

@@ -177,9 +177,56 @@ const getResourceById = async (req, res) => {
   }
 };
 
+// @desc    Create new resource
+// @route   POST /api/resources
+// @access  Public
+const createResource = async (req, res) => {
+  try {
+    const { title, description, type, category, duration, rating, tags, url } = req.body;
+
+    console.log('📝 POST /api/resources called');
+    console.log('Request body:', req.body);
+
+    // Validate required fields
+    if (!title || !description || !type || !category || !duration || !url) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: title, description, type, category, duration, url'
+      });
+    }
+
+    // Create new resource
+    const newResource = await Resource.create({
+      title,
+      description,
+      type,
+      category,
+      duration,
+      rating: rating || 4.0,
+      tags: Array.isArray(tags) ? tags : [],
+      url
+    });
+
+    console.log('✅ Resource created:', newResource._id);
+
+    res.status(201).json({
+      success: true,
+      data: newResource
+    });
+
+  } catch (error) {
+    console.error('❌ Create resource error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Error creating resource'
+    });
+  }
+};
+
 module.exports = {
   getResources,
   getCrisisSupport,
   getTherapyPlatforms,
-  getResourceById
+  getResourceById,
+  createResource
 };

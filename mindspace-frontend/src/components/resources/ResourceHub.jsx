@@ -8,15 +8,21 @@ import {
   Users,
   Search,
   ExternalLink,
+  Plus,
 } from "lucide-react";
 import CrisisSupport from "./CrisisSupport";
 import ResourceSidebar from "./ResourceSidebar";
+import AddResource from "./AddResource";
 
 const ResourceHub = () => {
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // API Base URL - using your Render backend
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mind-space-3l96.onrender.com';
 
   const categories = [
     { id: "all", label: "All Resources", icon: BookOpen },
@@ -106,17 +112,27 @@ const ResourceHub = () => {
         if (activeFilter !== 'all') params.append('category', activeFilter);
         if (searchTerm.trim()) params.append('search', searchTerm.trim());
 
-        const response = await fetch(`/api/resources?${params}`);
+        console.log('Fetching from:', `${API_BASE_URL}/api/resources?${params}`);
+
+        const response = await fetch(`${API_BASE_URL}/api/resources?${params}`);
         const text = await response.text();
         
         if (response.ok && text) {
           const result = JSON.parse(text);
-          setResources(result.success ? result.data : fallbackData);
+          if (result.success && result.data) {
+            console.log('Backend data loaded:', result.data.length, 'resources');
+            setResources(result.data);
+          } else {
+            console.log('Invalid backend response, using fallback');
+            setResources(fallbackData);
+          }
         } else {
+          console.log('Backend request failed, using fallback');
           setResources(fallbackData);
         }
       } catch (error) {
         console.error('API Error:', error);
+        console.log('Using fallback data due to error');
         setResources(fallbackData);
       } finally {
         setLoading(false);
@@ -129,6 +145,10 @@ const ResourceHub = () => {
 
   const handleResourceClick = (resource) => {
     if (resource.url) window.open(resource.url, '_blank');
+  };
+
+  const handleAddResource = (newResource) => {
+    setResources(prev => [newResource, ...prev]);
   };
 
   const filteredResources = resources.filter((resource) => {
@@ -176,6 +196,13 @@ const ResourceHub = () => {
                 className="w-full pl-16 pr-6 py-6 bg-gray-900/70 border border-emerald-500/30 rounded-2xl text-white text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400/60 focus:bg-gray-900/90 backdrop-blur-xl transition-all shadow-xl"
               />
             </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center px-8 py-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl font-bold text-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 transform hover:scale-105"
+            >
+              <Plus className="w-6 h-6 mr-3" />
+              Add Resource
+            </button>
           </div>
 
           {/* Category Filters */}
@@ -270,6 +297,14 @@ const ResourceHub = () => {
         </div>
 
         <ResourceSidebar />
+
+        {/* Add Resource Modal */}
+        <AddResource 
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAddResource={handleAddResource}
+          apiBaseUrl={API_BASE_URL}
+        />
       </div>
     </section>
   );

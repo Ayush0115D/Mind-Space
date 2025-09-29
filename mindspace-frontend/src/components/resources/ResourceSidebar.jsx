@@ -27,14 +27,14 @@ const ResourceSidebar = () => {
   ];
 
   return (
-    <div className="bg-gray-900/60 backdrop-blur-xl border border-emerald-500/30 rounded-3xl p-8 shadow-2xl shadow-emerald-900/10">
+    <div className="bg-gray-900/60 backdrop-blur-xl border border-teal-500/30 rounded-3xl p-8 shadow-2xl shadow-teal-900/10">
       <div className="flex items-center mb-8">
-        <div className="p-3 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl mr-4">
-          <Brain className="w-7 h-7 text-emerald-300" />
+        <div className="p-3 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 rounded-2xl mr-4">
+          <Brain className="w-7 h-7 text-teal-300" />
         </div>
         <div>
           <h3 className="text-3xl font-bold text-white">Therapy Platforms</h3>
-          <p className="text-emerald-300/80">Professional mental health support</p>
+          <p className="text-teal-300/80">Professional mental health support</p>
         </div>
       </div> 
       
@@ -43,10 +43,10 @@ const ResourceSidebar = () => {
         {therapyPlatforms.map((platform, index) => (
           <div 
             key={index} 
-            className="bg-gray-800/50 border border-emerald-500/20 rounded-2xl p-6 hover:bg-gray-800/70 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 cursor-pointer group"
+            className="bg-gray-800/50 border border-teal-500/20 rounded-2xl p-6 hover:bg-gray-800/70 hover:border-teal-500/40 hover:shadow-lg hover:shadow-teal-500/10 transition-all duration-300 cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-white text-xl group-hover:text-emerald-200 transition-colors">
+              <h4 className="font-bold text-white text-xl group-hover:text-teal-200 transition-colors">
                 {platform.name}
               </h4>
               <div className="flex items-center space-x-1">
@@ -61,8 +61,8 @@ const ResourceSidebar = () => {
               rel="noopener noreferrer"
               className="flex items-center justify-between"
             >
-              <span className="text-emerald-300 font-semibold text-lg">{platform.users} users</span>
-              <ExternalLink className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+              <span className="text-teal-300 font-semibold text-lg">{platform.users} users</span>
+              <ExternalLink className="w-5 h-5 text-teal-400 group-hover:text-teal-300 transition-colors" />
             </a>
           </div>
         ))}
