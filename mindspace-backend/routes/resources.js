@@ -6,17 +6,24 @@ const {
   getTherapyPlatforms,
   getResourceById,
   createResource,
-  seedDatabase
+  seedDatabase,
+  updateResource,
+  deleteResource
 } = require('../controllers/resourceController');
 
-// SEED ROUTE - Visit this URL once to populate database, then remove!
+// IMPORTANT: Specific routes MUST come before parameterized routes (:id)
 router.get('/seed', seedDatabase);
-
-// Public routes
-router.get('/', getResources);
-router.post('/', createResource);
 router.get('/crisis-support', getCrisisSupport);
 router.get('/therapy-platforms', getTherapyPlatforms);
-router.get('/:id', getResourceById);
+
+// Main resource routes
+router.get('/', getResources);
+router.post('/', createResource);
+
+// Parameterized routes - these must come LAST
+router.route('/:id')
+  .get(getResourceById)
+  .put(updateResource)
+  .delete(deleteResource);
 
 module.exports = router;

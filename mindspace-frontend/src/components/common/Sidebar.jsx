@@ -21,7 +21,7 @@ const Sidebar = ({ currentView, setCurrentView }) => {
   const hoverBgMap = {
     purple: 'hover:bg-purple-700/20',
     pink: 'hover:bg-pink-700/20',
-    blue: 'hover:bg-blue-700/20',
+    blue: 'hover:bg-blue-500/20',
     green: 'hover:bg-green-700/20',
     indigo: 'hover:bg-indigo-700/20'
   };

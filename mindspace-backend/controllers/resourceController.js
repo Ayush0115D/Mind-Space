@@ -272,11 +272,94 @@ const seedDatabase = async (req, res) => {
   }
 };
 
+// @desc    Update resource
+// @route   PUT /api/resources/:id
+// @access  Public
+const updateResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, type, category, duration, rating, tags, url } = req.body;
+
+    console.log('📝 PUT /api/resources/:id called', id);
+
+    const updatedResource = await Resource.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        type,
+        category,
+        duration,
+        rating: parseFloat(rating),
+        tags: Array.isArray(tags) ? tags : [],
+        url
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedResource) {
+      return res.status(404).json({
+        success: false,
+        message: 'Resource not found'
+      });
+    }
+
+    console.log('✅ Resource updated:', updatedResource._id);
+
+    res.json({
+      success: true,
+      data: updatedResource
+    });
+
+  } catch (error) {
+    console.error('❌ Update resource error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Error updating resource'
+    });
+  }
+};
+
+// @desc    Delete resource
+// @route   DELETE /api/resources/:id
+// @access  Public
+const deleteResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('🗑️ DELETE /api/resources/:id called', id);
+
+    const deletedResource = await Resource.findByIdAndDelete(id);
+
+    if (!deletedResource) {
+      return res.status(404).json({
+        success: false,
+        message: 'Resource not found'
+      });
+    }
+
+    console.log('✅ Resource deleted:', id);
+
+    res.json({
+      success: true,
+      message: 'Resource deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Delete resource error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error deleting resource'
+    });
+  }
+};
+
 module.exports = {
   getResources,
   getCrisisSupport,
   getTherapyPlatforms,
   getResourceById,
   createResource,
-  seedDatabase
+  seedDatabase,
+  updateResource,
+  deleteResource
 };
