@@ -87,3 +87,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .soft-glow {
   animation: softGlow 6s ease-in-out infinite;
 }
+.logo {
+  width: 200px; /* Increase this value as needed */
+  height: auto; /* Maintains aspect ratio */
+}
