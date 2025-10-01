@@ -1,17 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Sparkles,
-  Lightbulb,
-  MessageSquare,
-  Calendar,
-  TrendingUp,
-  Heart,
-  Activity,
-  Zap,
-  Send,
-  Loader2,
-  Brain
+  Sparkles, Lightbulb, MessageSquare, Calendar, TrendingUp,
+  Heart, Activity, Zap, Send, Loader2, Brain
 } from 'lucide-react';
+
+// Constants
+const API_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/wellness`
+  : 'http://localhost:5000/api/wellness';
+
+const MOODS = [
+  { value: 'stressed', label: 'Stressed', emoji: '😰', color: 'blue' },
+  { value: 'anxious', label: 'Anxious', emoji: '😟', color: 'purple' },
+  { value: 'tired', label: 'Tired', emoji: '😴', color: 'amber' },
+  { value: 'happy', label: 'Happy', emoji: '😊', color: 'green' }
+];
+
+const DEFAULT_TIPS = {
+  stressed: {
+    title: "Managing Stress Today",
+    tips: [
+      { icon: Lightbulb, text: "Take 5 deep breaths every hour", color: "blue" },
+      { icon: Activity, text: "Try a 10-minute walk during lunch", color: "indigo" },
+      { icon: Heart, text: "Practice progressive muscle relaxation", color: "slate" }
+    ],
+    gradient: "from-blue-600/20 to-indigo-600/20",
+    border: "border-blue-400/40"
+  },
+  anxious: {
+    title: "Calming Your Anxiety",
+    tips: [
+      { icon: Lightbulb, text: "Ground yourself with the 5-4-3-2-1 technique", color: "purple" },
+      { icon: Activity, text: "Write down your worries for 5 minutes", color: "indigo" },
+      { icon: Heart, text: "Listen to calming music or nature sounds", color: "blue" }
+    ],
+    gradient: "from-purple-600/20 to-indigo-600/20",
+    border: "border-purple-400/40"
+  },
+  tired: {
+    title: "Boosting Your Energy",
+    tips: [
+      { icon: Zap, text: "Get 15 minutes of sunlight exposure", color: "amber" },
+      { icon: Activity, text: "Stay hydrated - drink water every hour", color: "yellow" },
+      { icon: Heart, text: "Take a power nap (20 minutes max)", color: "orange" }
+    ],
+    gradient: "from-amber-600/20 to-yellow-600/20",
+    border: "border-amber-400/40"
+  },
+  happy: {
+    title: "Amplifying Your Joy",
+    tips: [
+      { icon: Heart, text: "Share your positivity with someone", color: "green" },
+      { icon: Lightbulb, text: "Journal about what's going well", color: "emerald" },
+      { icon: Activity, text: "Try something new or creative today", color: "teal" }
+    ],
+    gradient: "from-green-600/20 to-emerald-600/20",
+    border: "border-green-400/40"
+  }
+};
+
+const CATEGORY_ICONS = {
+  mental: Lightbulb,
+  physical: Activity,
+  social: Heart
+};
+
+const CATEGORY_COLORS = {
+  mental: 'blue',
+  physical: 'indigo',
+  social: 'slate'
+};
 
 const AIRecommendations = () => {
   const [selectedMood, setSelectedMood] = useState('stressed');
@@ -23,63 +81,6 @@ const AIRecommendations = () => {
   const [chatLoading, setChatLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://localhost:5000/api/wellness';
-
-  const moodAdvice = {
-    stressed: {
-      title: "Managing Stress Today",
-      tips: [
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Take 5 deep breaths every hour", color: "blue" },
-        { icon: <Activity className="w-5 h-5" />, text: "Try a 10-minute walk during lunch", color: "indigo" },
-        { icon: <Heart className="w-5 h-5" />, text: "Practice progressive muscle relaxation", color: "slate" }
-      ],
-      color: "blue",
-      gradient: "from-blue-600/20 to-indigo-600/20",
-      border: "border-blue-400/40"
-    },
-    anxious: {
-      title: "Calming Your Anxiety",
-      tips: [
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Ground yourself with the 5-4-3-2-1 technique", color: "purple" },
-        { icon: <Activity className="w-5 h-5" />, text: "Write down your worries for 5 minutes", color: "indigo" },
-        { icon: <Heart className="w-5 h-5" />, text: "Listen to calming music or nature sounds", color: "blue" }
-      ],
-      color: "purple",
-      gradient: "from-purple-600/20 to-indigo-600/20",
-      border: "border-purple-400/40"
-    },
-    tired: {
-      title: "Boosting Your Energy",
-      tips: [
-        { icon: <Zap className="w-5 h-5" />, text: "Get 15 minutes of sunlight exposure", color: "amber" },
-        { icon: <Activity className="w-5 h-5" />, text: "Stay hydrated - drink water every hour", color: "yellow" },
-        { icon: <Heart className="w-5 h-5" />, text: "Take a power nap (20 minutes max)", color: "orange" }
-      ],
-      color: "amber",
-      gradient: "from-amber-600/20 to-yellow-600/20",
-      border: "border-amber-400/40"
-    },
-    happy: {
-      title: "Amplifying Your Joy",
-      tips: [
-        { icon: <Heart className="w-5 h-5" />, text: "Share your positivity with someone", color: "green" },
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Journal about what's going well", color: "emerald" },
-        { icon: <Activity className="w-5 h-5" />, text: "Try something new or creative today", color: "teal" }
-      ],
-      color: "green",
-      gradient: "from-green-600/20 to-emerald-600/20",
-      border: "border-green-400/40"
-    }
-  };
-
-  const moods = [
-    { value: 'stressed', label: 'Stressed', emoji: '😰', color: 'blue' },
-    { value: 'anxious', label: 'Anxious', emoji: '😟', color: 'purple' },
-    { value: 'tired', label: 'Tired', emoji: '😴', color: 'amber' },
-    { value: 'happy', label: 'Happy', emoji: '😊', color: 'green' }
-  ];
-
-  // Fetch AI-generated tips when mood changes
   useEffect(() => {
     fetchMoodAdvice(selectedMood);
   }, [selectedMood]);
@@ -90,51 +91,36 @@ const AIRecommendations = () => {
     try {
       const response = await fetch(`${API_URL}/mood-advice`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch advice');
-      }
+      if (!response.ok) throw new Error('Failed to fetch advice');
 
       const data = await response.json();
       
       if (data.success && data.tips) {
-        const tipsWithIcons = data.tips.map(tip => ({
-          ...tip,
-          icon: getCategoryIcon(tip.category),
-          color: getCategoryColor(tip.category)
-        }));
+        const tipsWithIcons = data.tips.map(tip => {
+          const IconComponent = CATEGORY_ICONS[tip.category] || Lightbulb;
+          return {
+            ...tip,
+            icon: <IconComponent className="w-5 h-5" />,
+            color: CATEGORY_COLORS[tip.category] || 'blue'
+          };
+        });
         setCustomTips(tipsWithIcons);
       }
     } catch (error) {
       console.error('Error fetching mood advice:', error);
       setError('Could not load AI tips. Showing default tips.');
-      setCustomTips(moodAdvice[mood].tips);
+      const defaultTips = DEFAULT_TIPS[mood].tips.map(tip => ({
+        ...tip,
+        icon: <tip.icon className="w-5 h-5" />
+      }));
+      setCustomTips(defaultTips);
     } finally {
       setLoading(false);
     }
-  };
-
-  const getCategoryIcon = (category) => {
-    const icons = {
-      mental: <Lightbulb className="w-5 h-5" />,
-      physical: <Activity className="w-5 h-5" />,
-      social: <Heart className="w-5 h-5" />
-    };
-    return icons[category] || <Lightbulb className="w-5 h-5" />;
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      mental: 'blue',
-      physical: 'indigo',
-      social: 'slate'
-    };
-    return colors[category] || 'blue';
   };
 
   const sendChatMessage = async () => {
@@ -148,32 +134,23 @@ const AIRecommendations = () => {
     try {
       const response = await fetch(`${API_URL}/wellness-chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: chatInput,
-          conversationHistory: chatMessages
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: chatInput, conversationHistory: chatMessages }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
-      }
+      if (!response.ok) throw new Error('Failed to send message');
 
       const data = await response.json();
       
       if (data.success) {
-        const aiMessage = { role: 'assistant', content: data.response };
-        setChatMessages(prev => [...prev, aiMessage]);
+        setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
       }
     } catch (error) {
       console.error('Error sending chat message:', error);
-      const errorMessage = { 
+      setChatMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm sorry, I'm having trouble connecting right now. Please make sure the backend server is running and try again." 
-      };
-      setChatMessages(prev => [...prev, errorMessage]);
+        content: "I'm sorry, I'm having trouble connecting. Please ensure the backend is running." 
+      }]);
     } finally {
       setChatLoading(false);
     }
@@ -186,11 +163,14 @@ const AIRecommendations = () => {
     }
   };
 
-  const currentAdvice = moodAdvice[selectedMood];
+  const currentAdvice = DEFAULT_TIPS[selectedMood];
+  const displayTips = customTips.length > 0 ? customTips : currentAdvice.tips.map(tip => ({
+    ...tip,
+    icon: <tip.icon className="w-5 h-5" />
+  }));
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-950/40 px-6 py-20 relative overflow-hidden">
-      {/* Ambient background effects */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl"></div>
@@ -211,7 +191,7 @@ const AIRecommendations = () => {
         </div>
 
         <div className="space-y-8">
-          {/* Today's Personalized Advice */}
+          {/* Mood Advice Section */}
           <div className="bg-gradient-to-br from-blue-900/20 via-gray-900/40 to-indigo-900/20 backdrop-blur-xl border border-blue-400/30 rounded-3xl p-8 shadow-2xl shadow-blue-900/10">
             <div className="flex items-center mb-6">
               <div className="p-3 bg-blue-600/20 rounded-2xl mr-4">
@@ -227,20 +207,18 @@ const AIRecommendations = () => {
             <div className="mb-8">
               <label className="block text-gray-200 font-semibold mb-4">How are you feeling today?</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {moods.map((mood) => (
+                {MOODS.map((mood) => (
                   <button
                     key={mood.value}
                     onClick={() => setSelectedMood(mood.value)}
                     className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
                       selectedMood === mood.value
-                        ? `bg-${mood.color}-600/20 border-${mood.color}-400/60 shadow-lg shadow-${mood.color}-500/20 scale-105`
+                        ? `bg-${mood.color}-600/20 border-${mood.color}-400/60 shadow-lg scale-105`
                         : 'bg-gray-800/50 border-gray-700/50 hover:border-gray-600/50 hover:bg-gray-800/70'
                     }`}
                   >
                     <div className="text-3xl mb-2">{mood.emoji}</div>
-                    <div className={`font-semibold ${
-                      selectedMood === mood.value ? `text-${mood.color}-200` : 'text-gray-300'
-                    }`}>
+                    <div className={`font-semibold ${selectedMood === mood.value ? `text-${mood.color}-200` : 'text-gray-300'}`}>
                       {mood.label}
                     </div>
                   </button>
@@ -248,14 +226,13 @@ const AIRecommendations = () => {
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-200 text-sm">
                 ⚠️ {error}
               </div>
             )}
 
-            {/* Personalized Tips */}
+            {/* Tips Display */}
             <div className={`bg-gradient-to-r ${currentAdvice.gradient} backdrop-blur-xl border ${currentAdvice.border} rounded-2xl p-6`}>
               <h4 className="text-xl font-bold text-white mb-6 flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2 text-blue-300" />
@@ -269,11 +246,8 @@ const AIRecommendations = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {(customTips.length > 0 ? customTips : currentAdvice.tips).map((tip, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 hover:bg-white/10 transition-all duration-300 group cursor-pointer"
-                    >
+                  {displayTips.map((tip, index) => (
+                    <div key={index} className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 hover:bg-white/10 transition-all duration-300 group cursor-pointer">
                       <div className={`p-2 bg-${tip.color}-600/20 rounded-lg text-${tip.color}-300 group-hover:scale-110 transition-transform`}>
                         {tip.icon}
                       </div>
@@ -307,9 +281,7 @@ const AIRecommendations = () => {
                   <MessageSquare className="w-7 h-7 text-slate-300" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white">
-                    AI Wellness Coach
-                  </h3>
+                  <h3 className="text-2xl font-bold text-white">AI Wellness Coach</h3>
                   <p className="text-gray-300 text-sm">24/7 personalized support & guidance</p>
                 </div>
               </div>
@@ -329,18 +301,12 @@ const AIRecommendations = () => {
                   </div>
                   
                   <div className="grid md:grid-cols-3 gap-3">
-                    <div className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
-                      <span className="text-2xl mb-1 block">💬</span>
-                      <span className="text-gray-200 text-sm font-medium">Instant Responses</span>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
-                      <span className="text-2xl mb-1 block">🎯</span>
-                      <span className="text-gray-200 text-sm font-medium">Personalized Tips</span>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
-                      <span className="text-2xl mb-1 block">🔒</span>
-                      <span className="text-gray-200 text-sm font-medium">Private & Secure</span>
-                    </div>
+                    {['💬 Instant Responses', '🎯 Personalized Tips', '🔒 Private & Secure'].map((feature, idx) => (
+                      <div key={idx} className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
+                        <span className="text-2xl mb-1 block">{feature.split(' ')[0]}</span>
+                        <span className="text-gray-200 text-sm font-medium">{feature.substring(3)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -354,7 +320,6 @@ const AIRecommendations = () => {
               </>
             ) : (
               <div className="space-y-4">
-                {/* Chat Messages */}
                 <div className="bg-gray-900/50 rounded-xl p-4 h-96 overflow-y-auto space-y-3">
                   {chatMessages.length === 0 ? (
                     <div className="text-center text-gray-400 py-20">
@@ -363,17 +328,8 @@ const AIRecommendations = () => {
                     </div>
                   ) : (
                     chatMessages.map((msg, index) => (
-                      <div
-                        key={index}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-2xl p-4 ${
-                            msg.role === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-slate-700/50 text-gray-100'
-                          }`}
-                        >
+                      <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-gray-100'}`}>
                           <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                         </div>
                       </div>
@@ -388,7 +344,6 @@ const AIRecommendations = () => {
                   )}
                 </div>
 
-                {/* Chat Input */}
                 <div className="flex space-x-2">
                   <input
                     type="text"
@@ -404,18 +359,11 @@ const AIRecommendations = () => {
                     disabled={chatLoading || !chatInput.trim()}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                   >
-                    {chatLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
+                    {chatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   </button>
                 </div>
 
-                <button
-                  onClick={() => setChatOpen(false)}
-                  className="w-full text-gray-400 hover:text-white text-sm py-2 transition-colors"
-                >
+                <button onClick={() => setChatOpen(false)} className="w-full text-gray-400 hover:text-white text-sm py-2 transition-colors">
                   Close Chat
                 </button>
               </div>
@@ -423,7 +371,7 @@ const AIRecommendations = () => {
           </div>
         </div>
 
-        {/* AI Insights CTA Section */}
+        {/* CTA Section */}
         <div className="mt-12 text-center">
           <div className="bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-slate-600/20 backdrop-blur-xl border border-blue-400/40 rounded-3xl p-12 shadow-2xl shadow-blue-900/20 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/10 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
@@ -431,9 +379,7 @@ const AIRecommendations = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-400/30 to-yellow-400/30 rounded-2xl mb-6">
                 <Brain className="w-8 h-8 text-amber-300" />
               </div>
-              <h3 className="text-3xl font-bold text-white mb-6">
-                Need More Personalized Insights?
-              </h3>
+              <h3 className="text-3xl font-bold text-white mb-6">Need More Personalized Insights?</h3>
               <p className="text-gray-200 mb-8 max-w-3xl mx-auto text-lg leading-relaxed">
                 Our advanced AI analyzes your wellness patterns, goals, and preferences to deliver hyper-personalized recommendations that evolve with your journey.
               </p>

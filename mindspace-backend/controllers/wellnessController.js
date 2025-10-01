@@ -13,9 +13,13 @@ exports.getMoodAdvice = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Mood is required' });
     }
 
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ success: false, error: 'Missing GEMINI_API_KEY' });
+    }
+
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
-    const prompt = `Provide 3 actionable tips for someone feeling ${mood}. Format as JSON array:
+    const prompt = `Provide 3 actionable tips for someone feeling ${mood}. Format strictly as JSON array:
     [
       {"text": "tip 1", "category": "mental"},
       {"text": "tip 2", "category": "physical"},
@@ -23,23 +27,26 @@ exports.getMoodAdvice = async (req, res) => {
     ]`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = result.response.text();
 
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
     let tips = [];
-    
-    if (jsonMatch) {
-      tips = JSON.parse(jsonMatch[0]);
+    try {
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        tips = JSON.parse(jsonMatch[0]);
+      }
+    } catch (err) {
+      console.error("JSON parse failed:", err, "Raw text:", text);
     }
 
-    res.json({ success: true, mood, tips, timestamp: new Date().toISOString() });
+    res.json({ success: true, mood, tips, raw: text, timestamp: new Date().toISOString() });
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Mood advice error:', error);
     res.status(500).json({ success: false, error: 'Failed to generate advice' });
   }
 };
+
 
 // Wellness chat
 exports.wellnessChat = async (req, res) => {
