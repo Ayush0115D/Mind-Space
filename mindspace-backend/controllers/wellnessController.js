@@ -1,50 +1,87 @@
 // controllers/wellnessController.js
-require('dotenv').config();
 
-// AI Wellness Coach chat using Gemini API
-exports.wellnessChat = async (req, res) => {
+const wellnessChat = async (req, res) => {
   try {
     const { message, conversationHistory } = req.body;
 
     if (!message) {
-      return res.status(400).json({ success: false, message: 'Message is required' });
+      return res.status(400).json({
+        success: false,
+        message: "Message is required",
+      });
     }
 
-    // Combine previous conversation + current user message
-    const conversation = (conversationHistory || []).map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-    conversation.push({ role: 'user', content: message });
+    // Ensure GEMINI_API_KEY is present
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is missing!");
+      return res.status(500).json({
+        success: false,
+        message: "AI service not configured. Missing API key.",
+      });
+    }
 
-    // Call Gemini API
-    const apiUrl = 'https://api.openai.com/v1/chat/completions'; // replace if Gemini endpoint differs
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` // Gemini API key if different
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', // or Gemini model
-        messages: conversation,
-        temperature: 0.7,
-        max_tokens: 500
-      })
+    // Gemini 2-Flash API endpoint
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    let aiResponse = "Sorry, I couldn’t generate a response.";
+
+    try {
+      const response = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: [
+            {
+              role: "user",
+              text: message
+            }
+          ],
+          temperature: 0.7,
+          maxOutputTokens: 500
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Gemini 2-Flash API error response:", errText);
+        return res.status(500).json({
+          success: false,
+          message: "AI service failed",
+          error: errText,
+        });
+      }
+
+      const data = await response.json();
+
+      // Parse response
+      aiResponse =
+        data?.candidates?.[0]?.content?.[0]?.text ||
+        "Sorry, I couldn’t generate a response.";
+
+    } catch (geminiError) {
+      console.error("Error calling Gemini 2-Flash API:", geminiError);
+      return res.status(500).json({
+        success: false,
+        message: "AI service failed",
+        error: geminiError.message,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "AI response received",
+      response: aiResponse,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('Gemini API error:', errText);
-      return res.status(500).json({ success: false, message: 'AI service failed' });
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
-
-    res.json({ success: true, response: aiResponse });
-  } catch (err) {
-    console.error('AI Wellness Chat Error:', err);
-    res.status(500).json({ success: false, message: 'AI service failed' });
+  } catch (error) {
+    console.error("Wellness chat error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
+
+module.exports = { wellnessChat };

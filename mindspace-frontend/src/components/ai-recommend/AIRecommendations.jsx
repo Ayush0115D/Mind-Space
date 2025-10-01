@@ -18,53 +18,45 @@ const AIRecommendations = () => {
 
   // Scroll to bottom when new message comes
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
- const API_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/wellness-chat`
-  : 'http://localhost:5000/api/wellness-chat';
+  const sendChatMessage = async () => {
+    const trimmedMessage = chatInput.trim();
+    if (!trimmedMessage) return;
 
-const sendChatMessage = async () => {
-  const trimmedMessage = chatInput.trim();
-  if (!trimmedMessage) return;
+    const userMessage = { role: 'user', content: trimmedMessage };
+    const updatedChat = [...chatMessages, userMessage];
 
-  const userMessage = { role: 'user', content: trimmedMessage };
-  const updatedChat = [...chatMessages, userMessage];
+    setChatMessages(updatedChat);
+    setChatInput('');
+    setChatLoading(true);
+    setError(null);
 
-  setChatMessages(updatedChat);
-  setChatInput('');
-  setChatLoading(true);
-  setError(null);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmedMessage, conversationHistory: updatedChat })
+      });
 
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: trimmedMessage, conversationHistory: updatedChat })
-    });
+      if (!response.ok) throw new Error('Failed to send message');
 
-    if (!response.ok) throw new Error('Failed to send message');
-
-    const data = await response.json();
-    if (data.success) {
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } else {
-      setError('AI service did not return a valid response.');
+      const data = await response.json();
+      if (data.success) {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      } else {
+        setError('AI service did not return a valid response.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Cannot connect to AI service. Make sure backend is running.');
+    } finally {
+      setChatLoading(false);
     }
+  };
 
-  } catch (err) {
-    console.error(err);
-    setError('Cannot connect to AI service. Make sure backend is running.');
-  } finally {
-    setChatLoading(false);
-  }
-};
-
-
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendChatMessage();
@@ -179,7 +171,7 @@ const sendChatMessage = async () => {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     placeholder="Type your message..."
                     className="flex-1 bg-gray-800/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
                     disabled={chatLoading}

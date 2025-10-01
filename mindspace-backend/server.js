@@ -21,8 +21,7 @@ connectDB();
 // CORS configuration
 const allowedOrigins = [
   "https://mind-space-web.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:5000"
+  "http://localhost:5173"
 ].filter(Boolean);
 
 app.use(cors({
@@ -55,4 +54,5 @@ app.listen(PORT, () => {
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
   console.log(`📚 Resources endpoint: http://localhost:${PORT}/api/resources`);
   console.log(`🧠 Wellness endpoint: http://localhost:${PORT}/api/wellness-chat`);
+
 });
