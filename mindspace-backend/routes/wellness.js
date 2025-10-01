@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const wellnessController = require('../controllers/wellnessController');
+const { wellnessChat } = require('../controllers/wellnessController');
 
-router.get('/health', wellnessController.healthCheck);
-router.post('/mood-advice', wellnessController.getMoodAdvice);
-router.post('/wellness-chat', wellnessController.wellnessChat);
+// POST /api/wellness-chat
+router.post('/', wellnessChat);
+
+// Optional GET for testing
+router.get('/', (req, res) => {
+  res.json({ success: true, message: 'Wellness chat endpoint is live' });
+});
 
 module.exports = router;

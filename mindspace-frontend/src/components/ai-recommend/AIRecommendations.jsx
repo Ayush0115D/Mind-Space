@@ -1,160 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Sparkles, Lightbulb, MessageSquare, Calendar, TrendingUp,
-  Heart, Activity, Zap, Send, Loader2, Brain
-} from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageSquare, Send, Loader2, Brain } from 'lucide-react';
+import AIInsightsCTA from './AIInsightsCTA';
+import RecommendationTabs from './RecommendationTabs';
 
-// Constants
-const API_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/wellness`
-  : 'http://localhost:5000/api/wellness';
-
-const MOODS = [
-  { value: 'stressed', label: 'Stressed', emoji: '😰', color: 'blue' },
-  { value: 'anxious', label: 'Anxious', emoji: '😟', color: 'purple' },
-  { value: 'tired', label: 'Tired', emoji: '😴', color: 'amber' },
-  { value: 'happy', label: 'Happy', emoji: '😊', color: 'green' }
-];
-
-const DEFAULT_TIPS = {
-  stressed: {
-    title: "Managing Stress Today",
-    tips: [
-      { icon: Lightbulb, text: "Take 5 deep breaths every hour", color: "blue" },
-      { icon: Activity, text: "Try a 10-minute walk during lunch", color: "indigo" },
-      { icon: Heart, text: "Practice progressive muscle relaxation", color: "slate" }
-    ],
-    gradient: "from-blue-600/20 to-indigo-600/20",
-    border: "border-blue-400/40"
-  },
-  anxious: {
-    title: "Calming Your Anxiety",
-    tips: [
-      { icon: Lightbulb, text: "Ground yourself with the 5-4-3-2-1 technique", color: "purple" },
-      { icon: Activity, text: "Write down your worries for 5 minutes", color: "indigo" },
-      { icon: Heart, text: "Listen to calming music or nature sounds", color: "blue" }
-    ],
-    gradient: "from-purple-600/20 to-indigo-600/20",
-    border: "border-purple-400/40"
-  },
-  tired: {
-    title: "Boosting Your Energy",
-    tips: [
-      { icon: Zap, text: "Get 15 minutes of sunlight exposure", color: "amber" },
-      { icon: Activity, text: "Stay hydrated - drink water every hour", color: "yellow" },
-      { icon: Heart, text: "Take a power nap (20 minutes max)", color: "orange" }
-    ],
-    gradient: "from-amber-600/20 to-yellow-600/20",
-    border: "border-amber-400/40"
-  },
-  happy: {
-    title: "Amplifying Your Joy",
-    tips: [
-      { icon: Heart, text: "Share your positivity with someone", color: "green" },
-      { icon: Lightbulb, text: "Journal about what's going well", color: "emerald" },
-      { icon: Activity, text: "Try something new or creative today", color: "teal" }
-    ],
-    gradient: "from-green-600/20 to-emerald-600/20",
-    border: "border-green-400/40"
-  }
-};
-
-const CATEGORY_ICONS = {
-  mental: Lightbulb,
-  physical: Activity,
-  social: Heart
-};
-
-const CATEGORY_COLORS = {
-  mental: 'blue',
-  physical: 'indigo',
-  social: 'slate'
-};
+// API Configuration
+const API_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/wellness-chat`
+  : 'http://localhost:5000/api/wellness-chat';
 
 const AIRecommendations = () => {
-  const [selectedMood, setSelectedMood] = useState('stressed');
-  const [customTips, setCustomTips] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [error, setError] = useState(null);
+  const chatEndRef = useRef(null);
 
+  // Scroll to bottom when new message comes
   useEffect(() => {
-    fetchMoodAdvice(selectedMood);
-  }, [selectedMood]);
-
-  const fetchMoodAdvice = async (mood) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_URL}/mood-advice`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mood }),
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch advice');
-
-      const data = await response.json();
-      
-      if (data.success && data.tips) {
-        const tipsWithIcons = data.tips.map(tip => {
-          const IconComponent = CATEGORY_ICONS[tip.category] || Lightbulb;
-          return {
-            ...tip,
-            icon: <IconComponent className="w-5 h-5" />,
-            color: CATEGORY_COLORS[tip.category] || 'blue'
-          };
-        });
-        setCustomTips(tipsWithIcons);
-      }
-    } catch (error) {
-      console.error('Error fetching mood advice:', error);
-      setError('Could not load AI tips. Showing default tips.');
-      const defaultTips = DEFAULT_TIPS[mood].tips.map(tip => ({
-        ...tip,
-        icon: <tip.icon className="w-5 h-5" />
-      }));
-      setCustomTips(defaultTips);
-    } finally {
-      setLoading(false);
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  };
+  }, [chatMessages]);
 
-  const sendChatMessage = async () => {
-    if (!chatInput.trim()) return;
+ const API_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/wellness-chat`
+  : 'http://localhost:5000/api/wellness-chat';
 
-    const userMessage = { role: 'user', content: chatInput };
-    setChatMessages(prev => [...prev, userMessage]);
-    setChatInput('');
-    setChatLoading(true);
+const sendChatMessage = async () => {
+  const trimmedMessage = chatInput.trim();
+  if (!trimmedMessage) return;
 
-    try {
-      const response = await fetch(`${API_URL}/wellness-chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: chatInput, conversationHistory: chatMessages }),
-      });
+  const userMessage = { role: 'user', content: trimmedMessage };
+  const updatedChat = [...chatMessages, userMessage];
 
-      if (!response.ok) throw new Error('Failed to send message');
+  setChatMessages(updatedChat);
+  setChatInput('');
+  setChatLoading(true);
+  setError(null);
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-      }
-    } catch (error) {
-      console.error('Error sending chat message:', error);
-      setChatMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "I'm sorry, I'm having trouble connecting. Please ensure the backend is running." 
-      }]);
-    } finally {
-      setChatLoading(false);
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: trimmedMessage, conversationHistory: updatedChat })
+    });
+
+    if (!response.ok) throw new Error('Failed to send message');
+
+    const data = await response.json();
+    if (data.success) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } else {
+      setError('AI service did not return a valid response.');
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+    setError('Cannot connect to AI service. Make sure backend is running.');
+  } finally {
+    setChatLoading(false);
+  }
+};
+
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -162,12 +70,6 @@ const AIRecommendations = () => {
       sendChatMessage();
     }
   };
-
-  const currentAdvice = DEFAULT_TIPS[selectedMood];
-  const displayTips = customTips.length > 0 ? customTips : currentAdvice.tips.map(tip => ({
-    ...tip,
-    icon: <tip.icon className="w-5 h-5" />
-  }));
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-blue-950/40 px-6 py-20 relative overflow-hidden">
@@ -186,139 +88,66 @@ const AIRecommendations = () => {
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mx-auto mb-6"></div>
           <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Discover what works for you—personalized strategies backed by intelligent insights.
+            Your personal wellness companion—available 24/7 for support, guidance, and insights.
           </p>
         </div>
 
-        <div className="space-y-8">
-          {/* Mood Advice Section */}
-          <div className="bg-gradient-to-br from-blue-900/20 via-gray-900/40 to-indigo-900/20 backdrop-blur-xl border border-blue-400/30 rounded-3xl p-8 shadow-2xl shadow-blue-900/10">
-            <div className="flex items-center mb-6">
-              <div className="p-3 bg-blue-600/20 rounded-2xl mr-4">
-                <Sparkles className="w-7 h-7 text-blue-300" />
+        {/* Recommendation Tabs */}
+        <RecommendationTabs />
+
+        {/* AI Wellness Coach */}
+        <div className="bg-gradient-to-br from-slate-900/40 via-gray-900/40 to-blue-900/20 backdrop-blur-xl border border-slate-400/30 rounded-3xl p-8 shadow-2xl shadow-slate-900/10 hover:shadow-blue-500/10 transition-all duration-500">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-gradient-to-r from-slate-600/30 to-blue-600/30 rounded-2xl mr-4">
+                <MessageSquare className="w-7 h-7 text-slate-300" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white">Today's Personalized Advice</h3>
-                <p className="text-gray-300 text-sm">Based on your current mood and patterns</p>
+                <h3 className="text-2xl font-bold text-white">AI Wellness Coach</h3>
+                <p className="text-gray-300 text-sm">24/7 personalized support & guidance</p>
               </div>
             </div>
-
-            {/* Mood Selector */}
-            <div className="mb-8">
-              <label className="block text-gray-200 font-semibold mb-4">How are you feeling today?</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {MOODS.map((mood) => (
-                  <button
-                    key={mood.value}
-                    onClick={() => setSelectedMood(mood.value)}
-                    className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
-                      selectedMood === mood.value
-                        ? `bg-${mood.color}-600/20 border-${mood.color}-400/60 shadow-lg scale-105`
-                        : 'bg-gray-800/50 border-gray-700/50 hover:border-gray-600/50 hover:bg-gray-800/70'
-                    }`}
-                  >
-                    <div className="text-3xl mb-2">{mood.emoji}</div>
-                    <div className={`font-semibold ${selectedMood === mood.value ? `text-${mood.color}-200` : 'text-gray-300'}`}>
-                      {mood.label}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {error && (
-              <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-200 text-sm">
-                ⚠️ {error}
-              </div>
-            )}
-
-            {/* Tips Display */}
-            <div className={`bg-gradient-to-r ${currentAdvice.gradient} backdrop-blur-xl border ${currentAdvice.border} rounded-2xl p-6`}>
-              <h4 className="text-xl font-bold text-white mb-6 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-blue-300" />
-                {currentAdvice.title}
-              </h4>
-              
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-                  <span className="ml-3 text-gray-200">Getting personalized advice from AI...</span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {displayTips.map((tip, index) => (
-                    <div key={index} className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm rounded-xl p-4 hover:bg-white/10 transition-all duration-300 group cursor-pointer">
-                      <div className={`p-2 bg-${tip.color}-600/20 rounded-lg text-${tip.color}-300 group-hover:scale-110 transition-transform`}>
-                        {tip.icon}
-                      </div>
-                      <p className="text-gray-100 flex-1 leading-relaxed">{tip.text}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <div className="mt-6 flex items-center justify-between text-sm text-gray-300">
-                <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>Updated with AI insights</span>
-                </div>
-                <button 
-                  onClick={() => fetchMoodAdvice(selectedMood)}
-                  className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
-                  disabled={loading}
-                >
-                  {loading ? 'Loading...' : 'Refresh Tips →'}
-                </button>
-              </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-green-400 text-sm font-semibold">Online</span>
             </div>
           </div>
 
-          {/* AI Wellness Coach */}
-          <div className="bg-gradient-to-br from-slate-900/40 via-gray-900/40 to-blue-900/20 backdrop-blur-xl border border-slate-400/30 rounded-3xl p-8 shadow-2xl shadow-slate-900/10 hover:shadow-blue-500/10 transition-all duration-500">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
-                <div className="p-3 bg-gradient-to-r from-slate-600/30 to-blue-600/30 rounded-2xl mr-4">
-                  <MessageSquare className="w-7 h-7 text-slate-300" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">AI Wellness Coach</h3>
-                  <p className="text-gray-300 text-sm">24/7 personalized support & guidance</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm font-semibold">Online</span>
-              </div>
+          {error && (
+            <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-200 text-sm">
+              ⚠️ {error}
             </div>
+          )}
 
-            {!chatOpen ? (
-              <>
-                <div className="space-y-4 mb-6">
-                  <div className="bg-blue-600/10 border border-blue-400/20 rounded-xl p-4">
-                    <p className="text-gray-100 leading-relaxed">
-                      "I'm your personal wellness companion, available anytime you need support. I can help with stress management, goal setting, mindfulness practices, and more."
-                    </p>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-3 gap-3">
-                    {['💬 Instant Responses', '🎯 Personalized Tips', '🔒 Private & Secure'].map((feature, idx) => (
-                      <div key={idx} className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
-                        <span className="text-2xl mb-1 block">{feature.split(' ')[0]}</span>
-                        <span className="text-gray-200 text-sm font-medium">{feature.substring(3)}</span>
-                      </div>
-                    ))}
-                  </div>
+          {!chatOpen ? (
+            <>
+              {/* Intro & features */}
+              <div className="space-y-4 mb-6">
+                <div className="bg-blue-600/10 border border-blue-400/20 rounded-xl p-4">
+                  <p className="text-gray-100 leading-relaxed">
+                    "I'm your personal wellness companion, available anytime you need support. I can help with stress management, goal setting, mindfulness practices, and more."
+                  </p>
                 </div>
-
-                <button 
-                  onClick={() => setChatOpen(true)}
-                  className="w-full bg-gradient-to-r from-slate-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-slate-700 hover:to-blue-700 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 flex items-center justify-center"
-                >
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  Start Chatting Now
-                </button>
-              </>
-            ) : (
+                <div className="grid md:grid-cols-3 gap-3">
+                  {['💬 Instant Responses', '🎯 Personalized Tips', '🔒 Private & Secure'].map((feature, idx) => (
+                    <div key={idx} className="bg-white/5 rounded-lg p-3 text-center hover:bg-white/10 transition-all">
+                      <span className="text-2xl mb-1 block">{feature.split(' ')[0]}</span>
+                      <span className="text-gray-200 text-sm font-medium">{feature.substring(3)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button 
+                onClick={() => setChatOpen(true)}
+                className="w-full bg-gradient-to-r from-slate-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-slate-700 hover:to-blue-700 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 flex items-center justify-center"
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Start Chatting Now
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Chat box */}
               <div className="space-y-4">
                 <div className="bg-gray-900/50 rounded-xl p-4 h-96 overflow-y-auto space-y-3">
                   {chatMessages.length === 0 ? (
@@ -335,6 +164,7 @@ const AIRecommendations = () => {
                       </div>
                     ))
                   )}
+                  <div ref={chatEndRef}></div>
                   {chatLoading && (
                     <div className="flex justify-start">
                       <div className="bg-slate-700/50 text-gray-100 rounded-2xl p-4">
@@ -367,32 +197,13 @@ const AIRecommendations = () => {
                   Close Chat
                 </button>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-12 text-center">
-          <div className="bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-slate-600/20 backdrop-blur-xl border border-blue-400/40 rounded-3xl p-12 shadow-2xl shadow-blue-900/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/10 to-transparent rounded-full -translate-y-20 translate-x-20"></div>
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-400/30 to-yellow-400/30 rounded-2xl mb-6">
-                <Brain className="w-8 h-8 text-amber-300" />
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-6">Need More Personalized Insights?</h3>
-              <p className="text-gray-200 mb-8 max-w-3xl mx-auto text-lg leading-relaxed">
-                Our advanced AI analyzes your wellness patterns, goals, and preferences to deliver hyper-personalized recommendations that evolve with your journey.
-              </p>
-              <div className="flex flex-wrap gap-4 justify-center">
-                <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 border border-blue-400/20">
-                  Unlock AI Insights
-                </button>
-                <button className="bg-gray-900/60 text-blue-200 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-800/80 border-2 border-blue-500/30 hover:border-blue-500/50 backdrop-blur-xl transition-all duration-300 hover:text-white">
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* AI Insights CTA */}
+        <div className="mt-16">
+          <AIInsightsCTA />
         </div>
       </div>
     </section>
