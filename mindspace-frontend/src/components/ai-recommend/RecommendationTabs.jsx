@@ -23,7 +23,7 @@ const RecommendationTabs = () => {
   const [error, setError] = useState(null);
 
 const API_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/wellness`
+  ? `${import.meta.env.VITE_API_URL}/api/mood-advice`
   : 'http://localhost:5000/api/wellness';
   const moodAdvice = {
     stressed: {

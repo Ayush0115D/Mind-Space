@@ -8,53 +8,65 @@ const WELLNESS_COACH_PROMPT = `You are a compassionate AI Wellness Coach. Provid
 exports.getMoodAdvice = async (req, res) => {
   try {
     const { mood } = req.body;
-
-    if (!mood) {
-      return res.status(400).json({ success: false, error: 'Mood is required' });
-    }
-
+    if (!mood) return res.status(400).json({ success: false, error: 'Mood is required' });
+    
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ success: false, error: 'Missing GEMINI_API_KEY' });
+      console.error("❌ GEMINI_API_KEY missing");
+      return res.status(500).json({ success: false, error: 'Server misconfiguration' });
     }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-    const prompt = `Provide 3 actionable tips for someone feeling ${mood}. Format strictly as JSON array:
+    
+    const prompt = `Provide 3 actionable tips for someone feeling ${mood}. Format as JSON array:
     [
       {"text": "tip 1", "category": "mental"},
       {"text": "tip 2", "category": "physical"},
       {"text": "tip 3", "category": "social"}
     ]`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-
     let tips = [];
+    
     try {
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+      
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         tips = JSON.parse(jsonMatch[0]);
       }
     } catch (err) {
-      console.error("JSON parse failed:", err, "Raw text:", text);
+      console.error("❌ Gemini API error:", err.message);
     }
 
-    res.json({ success: true, mood, tips, raw: text, timestamp: new Date().toISOString() });
+    // Fallback tips if API fails
+    if (!tips.length) {
+      tips = [
+        { text: 'Take deep breaths for 5 minutes', category: 'mental' },
+        { text: 'Go for a short walk', category: 'physical' },
+        { text: 'Call a friend or loved one', category: 'social' }
+      ];
+    }
 
+    res.json({ success: true, mood, tips, timestamp: new Date().toISOString() });
   } catch (error) {
-    console.error('Mood advice error:', error);
+    console.error("❌ Mood advice error:", error.message);
     res.status(500).json({ success: false, error: 'Failed to generate advice' });
   }
 };
-
 
 // Wellness chat
 exports.wellnessChat = async (req, res) => {
   try {
     const { message, conversationHistory = [] } = req.body;
-
+    
     if (!message) {
       return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("❌ GEMINI_API_KEY missing");
+      return res.status(500).json({ success: false, error: 'Server misconfiguration' });
     }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
@@ -66,23 +78,30 @@ exports.wellnessChat = async (req, res) => {
     context += `User: ${message}\nCoach:`;
 
     const result = await model.generateContent(context);
-    const response = await result.response;
+    const response = result.response;
     const aiResponse = response.text();
 
     res.json({ success: true, response: aiResponse, timestamp: new Date().toISOString() });
-
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to process chat' });
+    console.error('❌ Wellness chat error:', error.message);
+    
+    // Return friendly error message
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to process chat',
+      message: 'The AI service is temporarily unavailable. Please try again in a moment.'
+    });
   }
 };
 
 // Health check
 exports.healthCheck = (req, res) => {
-  res.json({ 
+  const hasApiKey = !!process.env.GEMINI_API_KEY;
+  res.json({
     success: true,
-    status: 'OK', 
+    status: 'OK',
     message: 'Wellness API is running',
+    apiConfigured: hasApiKey,
     timestamp: new Date().toISOString()
   });
 };
