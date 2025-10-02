@@ -5,8 +5,8 @@ import RecommendationTabs from './RecommendationTabs';
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/wellness-chat`
-  : 'http://localhost:5000/api/wellness-chat';
+  ? `${import.meta.env.VITE_API_URL}/api/wellness`
+  : 'http://localhost:5000/api/wellness';
 
 const AIRecommendations = () => {
   const [chatOpen, setChatOpen] = useState(false);
