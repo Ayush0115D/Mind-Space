@@ -113,18 +113,26 @@ const MoodHistory = React.memo(({ moodEntries = [], onUpdateMood, onDeleteMood }
     else if (selectedPeriod === 'month') cutoffDate.setMonth(now.getMonth() - 1);
     else if (selectedPeriod === 'year') cutoffDate.setFullYear(now.getFullYear() - 1);
 
-    const filtered = moodEntries.filter(entry => new Date(entry.date) >= cutoffDate);
+    // Filter and sort entries by date (most recent first)
+    const filtered = moodEntries
+      .filter(entry => new Date(entry.date) >= cutoffDate)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    
     const average = filtered.length ? (filtered.reduce((acc, e) => acc + e.mood, 0) / filtered.length).toFixed(1) : 0;
 
     let trend = 'stable';
-    if (filtered.length >= 6) {
-      const recent = filtered.slice(0, 3), older = filtered.slice(3, 6);
-      if (older.length) {
-        const rAvg = recent.reduce((a, e) => a + e.mood, 0) / recent.length;
-        const oAvg = older.reduce((a, e) => a + e.mood, 0) / older.length;
-        if (rAvg > oAvg + 0.3) trend = 'improving';
-        else if (rAvg < oAvg - 0.3) trend = 'declining';
-      }
+    if (filtered.length >= 4) {
+      // Compare the 2 most recent entries with the 2 oldest entries in the period
+      const recentCount = Math.min(2, Math.floor(filtered.length / 2));
+      const recent = filtered.slice(0, recentCount);
+      const older = filtered.slice(-recentCount);
+      
+      const rAvg = recent.reduce((a, e) => a + e.mood, 0) / recent.length;
+      const oAvg = older.reduce((a, e) => a + e.mood, 0) / older.length;
+      
+      // Use a threshold of 0.5 for clearer trend detection
+      if (rAvg > oAvg + 0.5) trend = 'improving';
+      else if (rAvg < oAvg - 0.5) trend = 'declining';
     }
 
     return { filteredEntries: filtered, stats: { average, trend } };
@@ -167,7 +175,7 @@ const MoodHistory = React.memo(({ moodEntries = [], onUpdateMood, onDeleteMood }
             </div>
             <div className="bg-slate-800/40 rounded-lg p-4">
               <div className="text-2xl font-bold text-white">{trendEmoji}</div>
-              <div className="text-sm text-slate-400">{stats.trend} Trend</div>
+              <div className="text-sm text-slate-400 capitalize">{stats.trend} Trend</div>
             </div>
           </div>
         ) : (
@@ -178,18 +186,17 @@ const MoodHistory = React.memo(({ moodEntries = [], onUpdateMood, onDeleteMood }
         )}
       </div>
 
-   {!!filteredEntries.length && (
-  <div className="space-y-3">
-    <div className="flex justify-between items-center">
-      <h3 className="text-lg font-semibold text-white">Recent Entries</h3>
-      <p className="text-sm text-slate-400 italic">Hover to edit or delete</p>
-    </div>
+      {!!filteredEntries.length && (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-white">Recent Entries</h3>
+            <p className="text-sm text-slate-400 italic">Hover to edit or delete</p>
+          </div>
           {filteredEntries.map(entry => <MoodEntryItem key={entry._id} entry={entry} onUpdate={onUpdateMood} onDelete={onDeleteMood} />)}
         </div>
       )}
     </div>
   );
-}
-);
+});
 
 export default MoodHistory;

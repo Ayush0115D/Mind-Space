@@ -21,6 +21,9 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
     return 'text-gray-400';
   };
 
+  // Check if goal has reached its target (permanently completed)
+  const isGoalCompleted = goal.streak >= goal.target;
+
   // Fixed: Check if goal was completed TODAY in IST
   const isCompletedToday = () => {
     if (!goal.lastCompleted) return false;
@@ -52,9 +55,10 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => onToggleCompletion(goal)}
-            className="transition-colors duration-200"
+            disabled={isGoalCompleted}
+            className={`transition-colors duration-200 ${isGoalCompleted ? 'cursor-not-allowed' : ''}`}
           >
-            {isCompletedToday() ?
+            {isGoalCompleted || isCompletedToday() ?
               <CheckCircle2 className="h-6 w-6 text-green-400" /> :
               <Circle className="h-6 w-6 text-gray-500 hover:text-green-400" />
             }
@@ -88,10 +92,19 @@ const GoalCard = ({ goal, onToggleCompletion, onDelete }) => {
      
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Flame className={`h-5 w-5 ${getStreakColor(goal.streak)}`} />
-          <span className={`font-medium ${getStreakColor(goal.streak)}`}>{goal.streak} day streak</span>
+          {isGoalCompleted ? (
+            <>
+              <Award className="h-5 w-5 text-yellow-400" />
+              <span className="font-medium text-yellow-400">Completed!</span>
+            </>
+          ) : (
+            <>
+              <Flame className={`h-5 w-5 ${getStreakColor(goal.streak)}`} />
+              <span className={`font-medium ${getStreakColor(goal.streak)}`}>{goal.streak} day streak</span>
+            </>
+          )}
         </div>
-        {goal.streak >= goal.target && <Award className="h-5 w-5 text-yellow-400" />}
+        {isGoalCompleted && <Award className="h-5 w-5 text-yellow-400" />}
       </div>
     </div>
   );
