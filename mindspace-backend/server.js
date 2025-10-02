@@ -42,7 +42,7 @@ app.use('/api/moods', moodRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/resources', resourceRoutes);
-app.use('/api/wellness-chat', wellnessRoutes);
+app.use('/api/wellness', wellnessRoutes);
 
 // Health check
 app.get('/', (req, res) => {
@@ -53,6 +53,6 @@ app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
   console.log(`📚 Resources endpoint: http://localhost:${PORT}/api/resources`);
-  console.log(`🧠 Wellness endpoint: http://localhost:${PORT}/api/wellness-chat`);
+  console.log(`🧠 Wellness endpoint: http://localhost:${PORT}/api/wellness`);
 
 });
