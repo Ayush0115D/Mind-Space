@@ -191,7 +191,7 @@ const seedDatabase = async (req, res) => {
         rating: 4.8,
         description: "Learn to recognize early signs of burnout and discover effective recovery strategies that actually work.",
         tags: ["workplace", "stress", "recovery"],
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        url: "https://www.youtube.com/watch?v=t8yVk0bm684",
         isActive: true
       },
       {

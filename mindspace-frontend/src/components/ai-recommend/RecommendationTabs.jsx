@@ -12,48 +12,54 @@ import {
 const RecommendationTabs = () => {
   const [selectedMood, setSelectedMood] = useState('stressed');
 
-  const moodAdvice = {
-    stressed: {
-      title: "Managing Stress Today",
-      tips: [
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Take 5 deep breaths every hour", color: "blue" },
-        { icon: <Activity className="w-5 h-5" />, text: "Try a 10-minute walk during lunch", color: "indigo" },
-        { icon: <Heart className="w-5 h-5" />, text: "Practice progressive muscle relaxation", color: "slate" }
-      ],
-      gradient: "from-blue-600/20 to-indigo-600/20",
-      border: "border-blue-400/40"
-    },
-    anxious: {
-      title: "Calming Your Anxiety",
-      tips: [
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Ground yourself with the 5-4-3-2-1 technique", color: "purple" },
-        { icon: <Activity className="w-5 h-5" />, text: "Write down your worries for 5 minutes", color: "indigo" },
-        { icon: <Heart className="w-5 h-5" />, text: "Listen to calming music or nature sounds", color: "blue" }
-      ],
-      gradient: "from-purple-600/20 to-indigo-600/20",
-      border: "border-purple-400/40"
-    },
-    tired: {
-      title: "Boosting Your Energy",
-      tips: [
-        { icon: <Zap className="w-5 h-5" />, text: "Get 15 minutes of sunlight exposure", color: "amber" },
-        { icon: <Activity className="w-5 h-5" />, text: "Stay hydrated - drink water every hour", color: "yellow" },
-        { icon: <Heart className="w-5 h-5" />, text: "Take a power nap (20 minutes max)", color: "orange" }
-      ],
-      gradient: "from-amber-600/20 to-yellow-600/20",
-      border: "border-amber-400/40"
-    },
-    happy: {
-      title: "Amplifying Your Joy",
-      tips: [
-        { icon: <Heart className="w-5 h-5" />, text: "Share your positivity with someone", color: "green" },
-        { icon: <Lightbulb className="w-5 h-5" />, text: "Journal about what's going well", color: "emerald" },
-        { icon: <Activity className="w-5 h-5" />, text: "Try something new or creative today", color: "teal" }
-      ],
-      gradient: "from-green-600/20 to-emerald-600/20",
-      border: "border-green-400/40"
-    }
-  };
+const moodAdvice = {
+  stressed: {
+    title: "Managing Stress Today",
+    tips: [
+      { icon: <Lightbulb className="w-5 h-5" />, text: "Take a mindful walk and notice 5 things around you", color: "blue" },
+      { icon: <Activity className="w-5 h-5" />, text: "Stretch or do yoga for 10 minutes to release tension", color: "indigo" },
+      { icon: <Heart className="w-5 h-5" />, text: "Write a short note encouraging yourself", color: "slate" },
+      { icon: <Sparkles className="w-5 h-5" />, text: "Play your favorite song and dance for 3–5 minutes", color: "cyan" }
+    ],
+    gradient: "from-blue-600/20 to-indigo-600/20",
+    border: "border-blue-400/40"
+  },
+  anxious: {
+    title: "Calming Your Anxiety",
+    tips: [
+      { icon: <Lightbulb className="w-5 h-5" />, text: "Focus on a single task for 10 minutes to regain calm", color: "purple" },
+      { icon: <Activity className="w-5 h-5" />, text: "Draw, doodle, or color freely without pressure", color: "indigo" },
+      { icon: <Heart className="w-5 h-5" />, text: "Make a comforting cup of tea and savor it mindfully", color: "blue" },
+      { icon: <Sparkles className="w-5 h-5" />, text: "Perform one small act of kindness for someone else", color: "pink" }
+    ],
+    gradient: "from-purple-600/20 to-indigo-600/20",
+    border: "border-purple-400/40"
+  },
+  tired: {
+    title: "Boosting Your Energy",
+    tips: [
+      { icon: <Zap className="w-5 h-5" />, text: "Step outside for sunlight or fresh air for 10 minutes", color: "amber" },
+      { icon: <Activity className="w-5 h-5" />, text: "Do light stretching or quick body movements", color: "yellow" },
+      { icon: <Heart className="w-5 h-5" />, text: "Hydrate and have a nutritious snack like fruits or nuts", color: "orange" },
+      { icon: <Sparkles className="w-5 h-5" />, text: "Spend 5–10 minutes on a creative hobby", color: "yellow" }
+    ],
+    gradient: "from-amber-600/20 to-yellow-600/20",
+    border: "border-amber-400/40"
+  },
+  happy: {
+    title: "Amplifying Your Joy",
+    tips: [
+      { icon: <Heart className="w-5 h-5" />, text: "Share a heartwarming story with a friend", color: "green" },
+      { icon: <Lightbulb className="w-5 h-5" />, text: "Reflect on 3 positive things from today", color: "emerald" },
+      { icon: <Activity className="w-5 h-5" />, text: "Try a fun new activity or hobby", color: "teal" },
+      { icon: <Sparkles className="w-5 h-5" />, text: "Take a short walk outdoors and enjoy the moment", color: "emerald" }
+    ],
+    gradient: "from-green-600/20 to-emerald-600/20",
+    border: "border-green-400/40"
+  }
+};
+
+
 
   const moods = [
     { value: 'stressed', label: 'Stressed', emoji: '😰', color: 'blue' },

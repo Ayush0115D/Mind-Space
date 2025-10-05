@@ -38,8 +38,7 @@ const AIInsightsCTA = () => {
             </h2>
             <div className="space-y-6">
               <p className="text-2xl font-semibold text-indigo-300 leading-relaxed">
-                Due to billing plans to integrate AI in my project, I am unable
-                to provide personalized insights at this time.
+                Due to billing plans to integrate AI in my project, I am able to provide only limited tokens. To continue exploring personalized insights, please visit Perplexity, a powerful AI platform that offers extensive capabilities.
               </p>
               <p className="text-lg text-blue-300 opacity-95">
                 You’ll be redirected to{" "}
@@ -140,9 +139,7 @@ const AIInsightsCTA = () => {
             Need More Personalized Insights?
           </h3>
           <p className="text-gray-200 mb-8 max-w-3xl mx-auto text-lg leading-relaxed">
-            Our advanced AI analyzes your wellness patterns, goals, and
-            preferences to deliver hyper-personalized recommendations that evolve
-            with your journey.
+           Our advanced AI guides you through your wellness journey, delivering personalized recommendations that adapt to your preferences and evolve with your progress.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <button
