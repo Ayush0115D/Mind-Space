@@ -1,7 +1,9 @@
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 const wellnessChat = async (req, res) => {
   try {
     const { message, conversationHistory } = req.body;
-
+    
     if (!message || message.trim() === '') {
       return res.status(400).json({
         success: false,
@@ -9,64 +11,49 @@ const wellnessChat = async (req, res) => {
       });
     }
 
-    const userMessage = message.toLowerCase();
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is missing!");
+      return res.status(500).json({
+        success: false,
+        message: 'AI service not configured.',
+      });
+    }
 
-    // ✅ Define greetings keywords
-    const greetingsKeywords = ["hi", "hello", "hey", "how are you", "what are you doing", "are u fine", "how's it going"];
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Changed this line
 
-    // ✅ Define greeting responses
-    const greetingResponses = [
-      "Hi there! How are you doing today?",
-      "Hello! It's great to see you. How's your day going?",
-      "Hey! How's everything going for you today?",
-      "Hi! I hope your day is going well. What's on your mind?",
-      "Hello! It's nice to chat with you. How are you feeling?",
-      "Hey there! I'm here to listen. How have you been?",
-      "Hi! It's perfectly fine to just say hello. How's your day treating you?",
-      "Hello! I'm glad you reached out. How are things going for you?",
-      "Hey! It's always nice to connect. How are you feeling today?",
-      "Hi! I hope you're doing well. Is there anything you'd like to talk about?"
-    ];
+    const systemPrompt = `You are a compassionate AI Wellness Coach. Provide supportive, empathetic responses focused on mental health. Keep responses concise (2-4 paragraphs). Always prioritize user safety. If someone mentions self-harm or crisis, encourage them to contact emergency services or a crisis helpline immediately.`;
 
-    // ✅ Define wellness responses
-    const wellnessResponses = [
-      "I understand you're going through a difficult time. It's completely normal to feel this way. Would you like to talk more about what's on your mind?",
-      "Thank you for sharing that with me. Managing stress is important. Have you tried any relaxation techniques like deep breathing or meditation?",
-      "I hear you. Remember, it's okay to take things one step at a time. What's one small thing you could do today to take care of yourself?",
-      "That sounds challenging. Remember that seeking support is a sign of strength, not weakness. Is there someone you trust that you can talk to?",
-      "It's okay to feel overwhelmed sometimes. Taking a moment to breathe and ground yourself can help. Would you like some suggestions for coping strategies?",
-      "I appreciate you opening up. Self-care is so important. Have you been getting enough rest and taking breaks when you need them?",
-      "Your feelings are valid. Sometimes journaling or expressing emotions through creative outlets can help process what you're experiencing. Have you tried that?",
-      "It's great that you're reaching out. Setting small, achievable goals can help you feel more in control. What's one thing you'd like to accomplish today?",
-      "I can sense you're dealing with a lot. Remember to be kind to yourself during difficult times. What activities usually help you feel better?",
-      "Thank you for trusting me with this. Physical activity, even a short walk, can sometimes help improve mood. How has your physical wellness been lately?",
-      "That must be tough. Building a routine can provide structure and stability. Do you have any daily practices that help you feel grounded?",
-      "I'm here to listen. Sometimes just talking about what's bothering us can provide relief. Would you like to share more details?",
-      "Your mental health matters. Have you considered practicing mindfulness or gratitude exercises? They can be helpful for managing stress.",
-      "It sounds like you're dealing with a lot of pressure. Remember that it's okay to set boundaries and say no when you need to.",
-      "I appreciate your honesty. Sleep, nutrition, and hydration all play important roles in mental wellness. How have you been doing with those basics?",
-      "That's a lot to carry. Breaking problems down into smaller pieces can make them feel more manageable. What feels most urgent right now?",
-      "Your wellbeing is important. Connecting with others, even briefly, can help reduce feelings of isolation. Who in your life makes you feel supported?",
-      "Thank you for sharing. Progressive muscle relaxation or guided imagery can be helpful tools for managing anxiety. Would you like to learn more about those?",
-      "I understand this is difficult. Celebrating small wins along the way can help maintain motivation. What's something positive that happened recently?",
-      "It's courageous to acknowledge when things are hard. Professional support from a therapist or counselor can be really valuable. Have you considered that option?"
-    ];
+    let conversationText = systemPrompt + '\n\n';
+    
+    if (conversationHistory && conversationHistory.length > 0) {
+      conversationHistory.forEach(msg => {
+        conversationText += `${msg.role === 'user' ? 'User' : 'Coach'}: ${msg.content}\n`;
+      });
+    }
+    
+    conversationText += `User: ${message}\nCoach:`;
 
-    // ✅ Determine which type of response to send
-    const isGreeting = greetingsKeywords.some(keyword => userMessage.includes(keyword));
+    try {
+      const result = await model.generateContent(conversationText);
+      const response = result.response;
+      const aiResponse = response.text();
 
-    const responseArray = isGreeting ? greetingResponses : wellnessResponses;
-    const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
+      return res.json({
+        success: true,
+        response: aiResponse
+      });
 
-    console.log(isGreeting ? 'Using greeting response' : 'Using wellness response');
-
-    // Simulate a small delay like a real API
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return res.json({
-      success: true,
-      response: randomResponse
-    });
+    } catch (geminiError) {
+      console.error("Gemini error:", geminiError.message);
+      
+      return res.status(503).json({
+        success: false,
+        message: 'AI service temporarily unavailable',
+        fallback: "I'm experiencing technical difficulties. Please try again in a moment."
+      });
+    }
 
   } catch (error) {
     console.error('Error:', error);
