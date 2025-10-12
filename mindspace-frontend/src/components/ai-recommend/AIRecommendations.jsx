@@ -16,10 +16,7 @@ const AIRecommendations = () => {
   const [error, setError] = useState(null);
   const chatEndRef = useRef(null);
 
-  // Scroll to bottom when new message comes
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
+  // Removed auto-scroll to prevent chat from moving down
 
   const sendChatMessage = async () => {
     const trimmedMessage = chatInput.trim();
@@ -138,58 +135,58 @@ const AIRecommendations = () => {
               </button>
             </>
           ) : (
-            <>
-              {/* Chat box */}
-              <div className="space-y-4">
-                <div className="bg-gray-900/50 rounded-xl p-4 h-96 overflow-y-auto space-y-3">
-                  {chatMessages.length === 0 ? (
-                    <div className="text-center text-gray-400 py-20">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>Start a conversation! How are you feeling today?</p>
-                    </div>
-                  ) : (
-                    chatMessages.map((msg, index) => (
-                      <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-gray-100'}`}>
-                          <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  <div ref={chatEndRef}></div>
-                  {chatLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-slate-700/50 text-gray-100 rounded-2xl p-4">
-                        <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="space-y-4">
+              {/* Chat messages area */}
+              <div className="bg-gray-900/50 rounded-xl p-4 h-96 overflow-y-auto space-y-3">
+                {chatMessages.length === 0 ? (
+                  <div className="text-center text-gray-400 py-20">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Start a conversation! How are you feeling today?</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg, index) => (
+                    <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-gray-100'}`}>
+                        <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                       </div>
                     </div>
-                  )}
-                </div>
+                  ))
+                )}
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-700/50 text-gray-100 rounded-2xl p-4">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef}></div>
+              </div>
 
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type your message..."
-                    className="flex-1 bg-gray-800/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
-                    disabled={chatLoading}
-                  />
-                  <button
-                    onClick={sendChatMessage}
-                    disabled={chatLoading || !chatInput.trim()}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                  >
-                    {chatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                  </button>
-                </div>
-
-                <button onClick={() => setChatOpen(false)} className="w-full text-gray-400 hover:text-white text-sm py-2 transition-colors">
-                  Close Chat
+              {/* Input area */}
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message..."
+                  className="flex-1 bg-gray-800/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+                  disabled={chatLoading}
+                />
+                <button
+                  onClick={sendChatMessage}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
+                  {chatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 </button>
               </div>
-            </>
+
+              {/* Close button */}
+              <button onClick={() => setChatOpen(false)} className="w-full text-gray-400 hover:text-white text-sm py-2 transition-colors">
+                Close Chat
+              </button>
+            </div>
           )}
         </div>
 
