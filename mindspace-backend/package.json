@@ -13,6 +13,7 @@
   "description": "Backend API for MindSpace mental health platform",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "baseline-browser-mapping": "^2.10.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
