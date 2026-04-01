@@ -10,7 +10,6 @@ const Sidebar = ({ currentView, setCurrentView }) => {
     { id: 'goals',        label: 'Goals & Habits',  icon: Target,     accent: '#38bdf8', glow: 'rgba(56,189,248,0.18)',  tag: 'Track'    },
     { id: 'resources',    label: 'Resources',       icon: BookOpen,   accent: '#34d399', glow: 'rgba(52,211,153,0.18)',  tag: 'Learn'    },
     { id: 'ai-recommend', label: 'Recommendations', icon: Brain,      accent: '#818cf8', glow: 'rgba(129,140,248,0.18)', tag: 'AI'       },
-    { id: 'community',    label: 'Community',       icon: Users,      accent: '#fb7185', glow: 'rgba(251,113,133,0.18)', tag: 'Together' }, // ✨ NEW
   ];
 
   return (

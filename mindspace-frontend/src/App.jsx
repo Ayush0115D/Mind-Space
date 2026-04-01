@@ -6,7 +6,6 @@ import MoodTracker from './components/mood/MoodTracker';
 import GoalsHabitsTracker from './components/goals/GoalsHabitsTracker';
 import ResourceHub from './components/resources/ResourceHub';
 import AIRecommendations from './components/ai-recommend/AIRecommendations';
-import Community from './components/community/Community'; // ✨ NEW
 import LoginPage from './components/auth/LoginPage';
 import { X, Heart, Smile, Meh, Frown, Laugh, AlertCircle } from 'lucide-react';
 
@@ -167,7 +166,6 @@ const App = () => {
             {currentView === 'goals'        && <GoalsHabitsTracker user={user} />}
             {currentView === 'resources'    && <ResourceHub user={user} />}
             {currentView === 'ai-recommend' && <AIRecommendations user={user} />}
-            {currentView === 'community'    && <Community user={user} />} {/* ✨ NEW */}
           </div>
         </div>
       </div>
