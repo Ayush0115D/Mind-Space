@@ -12,7 +12,6 @@ const dashboardRoutes = require('./routes/dashboard');
 const resourceRoutes = require('./routes/resources');
 const wellnessRoutes = require('./routes/wellness');
 const reminderRoutes = require('./routes/reminders'); // ✨ NEW
-const communityRoutes = require('./routes/community');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,7 +45,6 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/wellness', wellnessRoutes);
 app.use('/api/reminders', reminderRoutes); // 
-app.use('/api/community', communityRoutes);
 
 // Health check
 app.get('/', (req, res) => {
